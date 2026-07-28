@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Burger Cursor styling for desktop/fine-pointer devices */
+@media (pointer: fine) {
+  html.custom-burger-cursor-active,
+  html.custom-burger-cursor-active body,
+  html.custom-burger-cursor-active a,
+  html.custom-burger-cursor-active button,
+  html.custom-burger-cursor-active input,
+  html.custom-burger-cursor-active select,
+  html.custom-burger-cursor-active textarea,
+  html.custom-burger-cursor-active [role="button"],
+  html.custom-burger-cursor-active .cursor-pointer {
+    cursor: none !important;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    color: #2B1810;
+    background-color: #F9E9C7;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Baloo 2', 'Poppins', cursive, sans-serif;
+  }
+}
+
+/* Lenis Smooth Scroll CSS */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F9E9C7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D9412A;
+  border-radius: 9999px;
+  border: 2px solid #F9E9C7;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C2351E;
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
