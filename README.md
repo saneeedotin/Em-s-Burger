@@ -1,5 +1,12 @@
 # EMS Burger
 
+
+![homepage](image.png)
+
+![menu](image-1.png)
+
+![loyalty card](image-2.png)
+
 A Vite + React website for EMS Burger.
 
 ## Prerequisites
