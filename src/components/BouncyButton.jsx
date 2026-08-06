@@ -47,10 +47,10 @@ export function BouncyButton({
       type={type}
       disabled={disabled}
       onClick={handleClick}
-      whileHover={disabled ? {} : { scale: 1.05, y: -2 }}
-      whileTap={disabled ? {} : { scale: 0.94, y: 1 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-      className={`relative inline-flex items-center justify-center gap-2 font-heading tracking-wide uppercase transition-colors overflow-hidden focus:outline-none ${
+      whileHover={disabled ? {} : { scale: 1.05 }}
+      whileTap={disabled ? {} : { scale: 0.94 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      className={`btn-micro relative inline-flex items-center justify-center gap-2 font-heading tracking-wide uppercase transition-colors overflow-hidden focus:outline-none ${
         variants[variant] || variants.primary
       } ${sizes[size] || sizes.normal} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
       {...props}
@@ -64,13 +64,13 @@ export function BouncyButton({
           key={r.id}
           initial={{ scale: 0, opacity: 0.5 }}
           animate={{ scale: 4, opacity: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
           style={{ left: r.x, top: r.y }}
           className="absolute w-8 h-8 -ml-4 -mt-4 bg-white/40 rounded-full pointer-events-none"
         />
       ))}
 
-      <span className="relative z-10 flex items-center gap-2">{children}</span>
+      <span className="transition-blur relative z-10 flex items-center gap-2">{children}</span>
     </motion.button>
   );
 }

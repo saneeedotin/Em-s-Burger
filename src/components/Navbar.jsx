@@ -18,7 +18,7 @@ export function Navbar() {
     { name: 'Menu', path: '/menu' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
-    { name: 'Loyalty Club', path: '/loyalty', badge: '10th Free' },
+    ...(!currentUser ? [{ name: 'Loyalty Club', path: '/loyalty', badge: '10th Free' }] : []),
   ];
 
   const handleLogout = () => {
@@ -28,7 +28,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-primary border-b-2 border-primary-dark/20 shadow-md">
+    <header className="sticky top-0 z-50 bg-primary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         {/* Brand Logo */}

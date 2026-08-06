@@ -7,7 +7,9 @@ const DEMO_USER = {
   name: "Aditi Rao",
   email: "demo@emsburgers.com",
   password: "demo1234",
+  hashCode: "1482",
   loyaltyPoints: 6,
+  beveragePoints: 2,
   favourites: ["ufo-burger", "destroyed-fries", "mango-boba-shake"],
   orders: [
     {
@@ -59,12 +61,63 @@ export function AuthProvider({ children }) {
     const saved = localStorage.getItem('ems_users');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsedUsers = JSON.parse(saved);
+        // Ensure legacy users have a hashCode
+        return parsedUsers.map(user => {
+          if (!user.hashCode) {
+            if (user.id === 'u_demo_001') return { ...user, hashCode: '1482' };
+            if (user.id === 'u_demo_002') return { ...user, hashCode: '9274' };
+            if (user.id === 'u_demo_003') return { ...user, hashCode: '5821' };
+            return { ...user, hashCode: Math.floor(1000 + Math.random() * 9000).toString() };
+          }
+          return user;
+        });
       } catch (e) {
         console.error(e);
       }
     }
-    return [DEMO_USER];
+    // Provide initial mock data if none exists
+    return [
+      DEMO_USER,
+      {
+        id: "u_demo_002",
+        name: "Rahul Verma",
+        email: "rahul@emsburgers.com",
+        password: "password",
+        hashCode: "9274",
+        loyaltyPoints: 3,
+        beveragePoints: 5,
+        favourites: ["pull-me-up"],
+        orders: [
+          {
+            id: "o_1044",
+            date: "2026-08-01",
+            items: [{ name: "UFO Burger", qty: 2, price: 249 }],
+            total: 498,
+            status: "preparing"
+          }
+        ]
+      },
+      {
+        id: "u_demo_003",
+        name: "Sneha Patel",
+        email: "sneha@emsburgers.com",
+        password: "password",
+        hashCode: "5821",
+        loyaltyPoints: 9, // One away from free
+        beveragePoints: 9,
+        favourites: ["classic-cold-coffee", "destroyed-fries"],
+        orders: [
+          {
+            id: "o_1045",
+            date: "2026-08-05",
+            items: [{ name: "Spicy Chicken Smasher", qty: 1, price: 269 }],
+            total: 269,
+            status: "pending"
+          }
+        ]
+      }
+    ];
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
@@ -118,7 +171,12 @@ export function AuthProvider({ children }) {
   };
 
   const loginAsDemo = () => {
-    setCurrentUser(DEMO_USER);
+    const found = users.find(u => u.id === DEMO_USER.id);
+    if (found) {
+      setCurrentUser(found);
+    } else {
+      setCurrentUser(DEMO_USER);
+    }
     return { success: true };
   };
 
@@ -133,7 +191,9 @@ export function AuthProvider({ children }) {
       name,
       email,
       password,
+      hashCode: Math.floor(1000 + Math.random() * 9000).toString(),
       loyaltyPoints: 1, // Start with 1 welcome stamp!
+      beveragePoints: 0,
       favourites: [],
       orders: []
     };
@@ -172,16 +232,72 @@ export function AuthProvider({ children }) {
     });
   };
 
+  const updateBeveragePoints = (newPoints) => {
+    if (!currentUser) return;
+    const clampedPoints = Math.min(9, Math.max(0, newPoints));
+    setCurrentUser({
+      ...currentUser,
+      beveragePoints: clampedPoints
+    });
+  };
+
+  // Admin Functions
+  const adminUpdateUserLoyalty = (userId, points, type = 'burger') => {
+    setUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        const clampedPoints = Math.min(9, Math.max(0, points));
+        return {
+          ...u,
+          [type === 'burger' ? 'loyaltyPoints' : 'beveragePoints']: clampedPoints
+        };
+      }
+      return u;
+    }));
+    
+    // Update currentUser if the admin is editing their own account (rare but possible)
+    if (currentUser?.id === userId) {
+      const clampedPoints = Math.min(9, Math.max(0, points));
+      setCurrentUser(prev => ({
+        ...prev,
+        [type === 'burger' ? 'loyaltyPoints' : 'beveragePoints']: clampedPoints
+      }));
+    }
+  };
+
+  const adminUpdateOrderStatus = (userId, orderId, status) => {
+    setUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        return {
+          ...u,
+          orders: u.orders.map(o => o.id === orderId ? { ...o, status } : o)
+        };
+      }
+      return u;
+    }));
+    
+    // Update currentUser if applicable
+    if (currentUser?.id === userId) {
+      setCurrentUser(prev => ({
+        ...prev,
+        orders: prev.orders.map(o => o.id === orderId ? { ...o, status } : o)
+      }));
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         currentUser,
+        users, // EXPOSED FOR ADMIN
         login,
         loginAsDemo,
         signup,
         logout,
         toggleFavourite,
         updateLoyaltyPoints,
+        updateBeveragePoints,
+        adminUpdateUserLoyalty,
+        adminUpdateOrderStatus,
         isDemoAccount: currentUser?.email === 'demo@emsburgers.com'
       }}
     >

@@ -5,7 +5,7 @@ import { Logo } from './Logo';
 
 export function Footer() {
   return (
-    <footer className="bg-primary text-cream pt-16 pb-12 border-t-8 border-accent relative overflow-hidden">
+    <footer className="bg-primary text-cream pt-16 pb-12 relative overflow-hidden mt-[-1px]">
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary-hover/40 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none" />

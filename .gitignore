@@ -4,3 +4,11 @@ dist/
 .env
 .env.*
 .DS_Store
+*.mp4
+*.png
+*.jpg
+.agents/
+implementation_plan.md
+skills-lock.json
+www_cravburgers_shop.html
+cravdesign.md

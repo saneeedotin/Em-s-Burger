@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Sparkles, ArrowRight, Flame } from 'lucide-react';
 import { MENU_ITEMS } from '../data/menu';
 import { MenuItemCard } from './MenuItemCard';
+import { WaveDivider } from './WaveDivider';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -36,6 +37,7 @@ export function SignaturePicksStrip() {
 
   return (
     <section ref={sectionRef} className="py-20 bg-cream text-dark relative overflow-hidden">
+      <WaveDivider fillClass="fill-primary" position="top" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

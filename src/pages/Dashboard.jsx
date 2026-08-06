@@ -5,28 +5,48 @@ import { useAuth } from '../context/AuthContext';
 import { MENU_ITEMS } from '../data/menu';
 import { DashboardTabs } from '../components/DashboardTabs';
 import { MenuItemCard } from '../components/MenuItemCard';
+import { CardFace } from '../components/LoyaltyPunchCard';
 import { 
   Award, Star, Sparkles, ShoppingBag, Heart, CheckCircle2, 
   RotateCcw, Plus, ExternalLink, QrCode, ArrowRight, UserCheck 
 } from 'lucide-react';
 
 export function Dashboard() {
-  const { currentUser, updateLoyaltyPoints, toggleFavourite, isDemoAccount } = useAuth();
+  const { currentUser, updateLoyaltyPoints, updateBeveragePoints, toggleFavourite, isDemoAccount } = useAuth();
   const [activeTab, setActiveTab] = useState('loyalty');
   const [justUnlocked, setJustUnlocked] = useState(false);
   const [reorderedId, setReorderedId] = useState(null);
 
   const points = currentUser?.loyaltyPoints || 0;
-  const isUnlocked = points >= 9;
+  const beveragePoints = currentUser?.beveragePoints || 0;
+  const isUnlocked = points >= 10 || points >= 9; // Adjusting for 10-stamp card logic where 10th is free
+
+  const [burgerJustPunched, setBurgerJustPunched] = useState(null);
+  const [beverageJustPunched, setBeverageJustPunched] = useState(null);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   // Trigger celebration confetti when reaching 9/9 points
   const handleAddStamp = () => {
-    if (points < 9) {
+    if (points < 10) {
       const nextPoints = points + 1;
       updateLoyaltyPoints(nextPoints);
-      if (nextPoints >= 9) {
+      setBurgerJustPunched(points);
+      setTimeout(() => setBurgerJustPunched(null), 700);
+      if (nextPoints >= 10) {
         fireConfetti();
         setJustUnlocked(true);
+      }
+    }
+  };
+
+  const handleAddBeverageStamp = () => {
+    if (beveragePoints < 10) {
+      const nextPoints = beveragePoints + 1;
+      updateBeveragePoints(nextPoints);
+      setBeverageJustPunched(beveragePoints);
+      setTimeout(() => setBeverageJustPunched(null), 700);
+      if (nextPoints >= 10) {
+        fireConfetti();
       }
     }
   };
@@ -34,6 +54,10 @@ export function Dashboard() {
   const handleResetStamps = () => {
     updateLoyaltyPoints(0);
     setJustUnlocked(false);
+  };
+
+  const handleResetBeverageStamps = () => {
+    updateBeveragePoints(0);
   };
 
   const fireConfetti = () => {
@@ -66,14 +90,24 @@ export function Dashboard() {
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-dark font-heading font-extrabold text-xs uppercase tracking-wider shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 fill-dark" />
                 <span>Loyalty Club Dashboard</span>
               </div>
-              <h1 className="font-heading font-black text-3xl sm:text-5xl tracking-tight text-cream">
-                WELCOME BACK, {currentUser?.name?.toUpperCase() || 'FOODIE'}!
-              </h1>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <h1 className="font-heading font-black text-3xl sm:text-5xl tracking-tight text-cream">
+                  WELCOME BACK, {currentUser?.name?.toUpperCase() || 'FOODIE'}!
+                </h1>
+                {currentUser?.hashCode && (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-dark text-accent border-2 border-accent/20 shadow-inner w-fit mt-2 sm:mt-0">
+                    <span className="text-sm font-bold text-cream/70 uppercase tracking-widest">ID:</span>
+                    <span className="font-mono font-black text-3xl sm:text-4xl">#{currentUser.hashCode}</span>
+                  </div>
+                )}
+              </div>
+              
               <p className="text-cream/90 text-sm sm:text-base font-medium max-w-xl">
                 Track your digital stamps, reorder past favorites, and unlock your 10th FREE burger.
               </p>
@@ -150,84 +184,50 @@ export function Dashboard() {
               )}
 
               {/* Punch Card Container */}
-              <div className="bg-cream-light border-4 border-primary/20 rounded-4xl p-6 sm:p-10 shadow-xl space-y-8">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b-2 border-dashed border-primary/20">
-                  <div>
-                    <h2 className="font-heading font-black text-3xl text-primary">
-                      Personal Digital Stamp Card
-                    </h2>
-                    <p className="text-dark/80 text-sm font-medium">
-                      {isUnlocked
-                        ? "Congratulations! You've completed 9 stamps."
-                        : `Collect ${9 - points} more stamps to claim your 10th free burger!`}
-                    </p>
+              <div className="relative w-full" style={{ perspective: '2000px' }}>
+                <motion.div
+                  initial={false}
+                  animate={{ rotateY: isFlipped ? 180 : 0 }}
+                  transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 25 }}
+                  style={{ transformStyle: 'preserve-3d' }}
+                  className="relative w-full"
+                >
+                  {/* Front Face: Burgers */}
+                  <div style={{ backfaceVisibility: 'hidden' }} className="w-full">
+                    <CardFace
+                      type="burger"
+                      count={points}
+                      setCount={updateLoyaltyPoints} // fallback
+                      justPunched={burgerJustPunched}
+                      setJustPunched={setBurgerJustPunched}
+                      onFlip={() => setIsFlipped(true)}
+                      mode="dashboard"
+                      onSimulateScan={handleAddStamp}
+                      onReset={handleResetStamps}
+                    />
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleAddStamp}
-                      disabled={isUnlocked}
-                      className={`px-5 py-2.5 rounded-full font-heading font-extrabold text-xs uppercase tracking-wider shadow-md transition-all ${
-                        isUnlocked
-                          ? 'bg-dark/20 text-dark/40 cursor-not-allowed'
-                          : 'bg-primary hover:bg-primary-hover text-cream active:scale-95'
-                      }`}
-                    >
-                      + Simulate Scan (+1 Stamp)
-                    </button>
-                    <button
-                      onClick={handleResetStamps}
-                      aria-label="Reset stamps"
-                      className="p-2.5 rounded-full bg-cream border border-primary/20 text-primary hover:bg-primary/10 transition-colors"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                    </button>
+                  {/* Back Face: Beverages */}
+                  <div
+                    style={{
+                      backfaceVisibility: 'hidden',
+                      transform: 'rotateY(180deg)',
+                    }}
+                    className="absolute inset-0 w-full h-full"
+                  >
+                    <CardFace
+                      type="beverage"
+                      count={beveragePoints}
+                      setCount={updateBeveragePoints} // fallback
+                      justPunched={beverageJustPunched}
+                      setJustPunched={setBeverageJustPunched}
+                      onFlip={() => setIsFlipped(false)}
+                      mode="dashboard"
+                      onSimulateScan={handleAddBeverageStamp}
+                      onReset={handleResetBeverageStamps}
+                    />
                   </div>
-                </div>
-
-                {/* 10 Circular Punch Slots Grid */}
-                <div className="grid grid-cols-5 sm:grid-cols-10 gap-3 sm:gap-4">
-                  {Array.from({ length: 10 }).map((_, index) => {
-                    const isFilled = index < points;
-                    const is10thSlot = index === 9;
-
-                    return (
-                      <motion.div
-                        key={index}
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: index * 0.04, type: 'spring', stiffness: 300 }}
-                        className={`relative aspect-square rounded-full flex items-center justify-center font-heading font-extrabold text-lg sm:text-xl transition-all shadow-md ${
-                          is10thSlot
-                            ? isUnlocked
-                              ? 'bg-accent text-dark border-4 border-dark ring-4 ring-accent/50 animate-pulse-glow'
-                              : 'bg-accent/20 border-4 border-dashed border-accent text-dark'
-                            : isFilled
-                            ? 'bg-primary text-cream border-2 border-primary-dark shadow-inner'
-                            : 'bg-cream border-2 border-dashed border-primary/30 text-primary/40'
-                        }`}
-                      >
-                        {is10thSlot ? (
-                          <div className="flex flex-col items-center justify-center">
-                            <Star className={`w-6 h-6 ${isUnlocked ? 'fill-dark text-dark' : 'text-accent fill-accent'}`} />
-                            <span className="text-[8px] font-black uppercase text-dark">FREE</span>
-                          </div>
-                        ) : isFilled ? (
-                          <CheckCircle2 className="w-5 h-5 text-accent stroke-[3]" />
-                        ) : (
-                          <span>{index + 1}</span>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                <div className="p-4 rounded-3xl bg-primary/5 border border-primary/10 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-dark/80 font-medium">
-                    <QrCode className="w-4 h-4 text-primary shrink-0" />
-                    <span>Scan your table QR code at EM's Burgers Chembur Camp to automatically add stamps!</span>
-                  </div>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           )}

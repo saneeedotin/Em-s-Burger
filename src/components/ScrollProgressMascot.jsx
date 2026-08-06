@@ -24,11 +24,11 @@ export function ScrollProgressMascot() {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 20 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              className="mb-4 w-72 bg-cream rounded-3xl p-5 border-4 border-primary shadow-2xl space-y-3 text-dark relative"
+              className="mb-4 w-72 bg-cream rounded-3xl p-5 border-4 border-primary shadow-2xl space-y-3 text-dark relative origin-bottom-right"
             >
               <button
                 onClick={() => setIsOpen(false)}

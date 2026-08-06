@@ -30,13 +30,13 @@ export function MenuItemCard({ item, onSelect }) {
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
-      className={`group relative bg-cream-light rounded-3xl p-4 sm:p-5 border-2 ${
-        isSignature ? 'border-primary/40 shadow-xl' : 'border-primary/10 shadow-md'
-      } flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:border-primary/60`}
+      className={`group relative bg-primary text-cream rounded-3xl p-4 sm:p-5 border-2 ${
+        isSignature ? 'border-primary-dark/40 shadow-xl' : 'border-primary-dark/20 shadow-md'
+      } flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:border-primary-dark/60`}
     >
       <div>
         {/* Image Container with Badges */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-primary/5 mb-4">
+        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-4">
           <img
             src={image}
             alt={name}
@@ -115,29 +115,29 @@ export function MenuItemCard({ item, onSelect }) {
         {/* Title & Description */}
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-heading font-bold text-xl sm:text-2xl text-dark leading-tight group-hover:text-primary transition-colors">
+            <h3 className="font-heading font-bold text-xl sm:text-2xl text-cream leading-tight group-hover:text-accent transition-colors">
               {name}
             </h3>
-            <span className="font-heading font-black text-xl text-primary shrink-0 bg-primary/10 px-3 py-1 rounded-xl">
+            <span className="font-heading font-black text-xl text-dark shrink-0 bg-accent px-3 py-1 rounded-xl">
               ₹{price}
             </span>
           </div>
 
-          <p className="text-dark/75 text-sm leading-relaxed line-clamp-2">
+          <p className="text-cream/80 text-sm leading-relaxed line-clamp-2">
             {description}
           </p>
         </div>
       </div>
 
       {/* Card Footer Action */}
-      <div className="mt-5 pt-3 border-t border-primary/10 flex items-center justify-between gap-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-dark/50">
+      <div className="mt-5 pt-3 border-t border-cream/20 flex items-center justify-between gap-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-cream/50">
           {isVeg ? '100% Vegetarian' : 'Chef Special'}
         </span>
 
         <button
           onClick={() => onSelect && onSelect(item)}
-          className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-cream font-heading font-bold text-xs px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95"
+          className="inline-flex items-center gap-1.5 bg-accent hover:bg-accent-hover text-dark font-heading font-bold text-xs px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all active:scale-95"
         >
           <span>Order</span>
           <Plus className="w-3.5 h-3.5 stroke-[3]" />
