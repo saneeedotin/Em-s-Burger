@@ -209,9 +209,18 @@ export const CardFace = ({ type, count, setCount, justPunched, setJustPunched, o
   );
 };
 
-export function LoyaltyPunchCard({ initialCount = 3 }) {
+export function LoyaltyPunchCard({ initialCount = 3, initialBeverageCount = 2 }) {
   const [burgerCount, setBurgerCount] = useState(initialCount);
-  const [beverageCount, setBeverageCount] = useState(2);
+  const [beverageCount, setBeverageCount] = useState(initialBeverageCount);
+  
+  // Sync state if props update (e.g. real-time sync from admin)
+  React.useEffect(() => {
+    setBurgerCount(initialCount);
+  }, [initialCount]);
+
+  React.useEffect(() => {
+    setBeverageCount(initialBeverageCount);
+  }, [initialBeverageCount]);
   const [burgerJustPunched, setBurgerJustPunched] = useState(null);
   const [beverageJustPunched, setBeverageJustPunched] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);

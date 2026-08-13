@@ -1,12 +1,57 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { Link } from 'react-router-dom';
-import { Heart, Sparkles, ChefHat, Flame, History, X, Info } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../config/supabase';
 
 export function About() {
   const storyContainerRef = useRef(null);
   const [selectedDish, setSelectedDish] = useState(null);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [newReviewText, setNewReviewText] = useState('');
+  
+  const [reviews, setReviews] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const applyRandomStyle = (reviewData) => {
+    const styles = [
+      { colorClass: 'bg-cream-light', textClass: 'text-dark', pinClass: 'bg-primary' },
+      { colorClass: 'bg-accent', textClass: 'text-dark', pinClass: 'bg-primary-dark' },
+      { colorClass: 'bg-primary', textClass: 'text-cream', pinClass: 'bg-accent' },
+      { colorClass: 'bg-cream', textClass: 'text-dark', pinClass: 'bg-primary' }
+    ];
+    const rotations = ['-rotate-1', '-rotate-2', '-rotate-3', 'rotate-1', 'rotate-2', 'rotate-3'];
+    const style = styles[Math.floor(Math.random() * styles.length)];
+    
+    return {
+      ...reviewData,
+      colorClass: style.colorClass,
+      textClass: style.textClass,
+      pinClass: style.pinClass,
+      rotateClass: rotations[Math.floor(Math.random() * rotations.length)]
+    };
+  };
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching reviews:', error);
+      } else if (data) {
+        setReviews(data.map(applyRandomStyle));
+      }
+    };
+    fetchReviews();
+  }, []);
 
   const favoritePicks = [
     {
@@ -58,6 +103,41 @@ export function About() {
       story: 'Built for the hungry. A layered masterpiece designed to push the boundaries of what a burger can be, continuing to live up to its name.'
     }
   ];
+
+  const handlePinReviewClick = () => {
+    if (currentUser) {
+      setShowReviewModal(true);
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const submitReview = async () => {
+    if (!newReviewText.trim() || !currentUser) return;
+    setIsSubmitting(true);
+
+    const newReview = {
+      user_id: currentUser.id,
+      author_name: currentUser.name || "Customer",
+      text: newReviewText,
+    };
+
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert([newReview])
+      .select();
+
+    if (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to post review. Please try again.');
+    } else if (data) {
+      // Prepend so it shows up first
+      setReviews([applyRandomStyle(data[0]), ...reviews]);
+      setNewReviewText('');
+      setShowReviewModal(false);
+    }
+    setIsSubmitting(false);
+  };
 
   useGSAP(
     () => {
@@ -118,6 +198,21 @@ export function About() {
         { y: 35, opacity: 0, scale: 0.95 },
         { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.2)', stagger: 0.08 },
         '-=0.35'
+      );
+
+      // Card 4 (Corkboard Reviews) slides down from above over Card 3
+      tl.fromTo(
+        '.anim-card-4',
+        { y: -160, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out' },
+        '-=0.35'
+      );
+
+      tl.fromTo(
+        '.anim-sticky-note',
+        { y: 50, opacity: 0, rotation: () => Math.random() * 20 - 10, scale: 0.8 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.5)', stagger: 0.1 },
+        '-=0.4'
       );
     },
     { scope: storyContainerRef }
@@ -283,6 +378,56 @@ export function About() {
         </div>
       </section>
 
+      {/* SECTION 4: Corkboard Reviews */}
+      <section className="anim-card-4 relative bg-dark text-cream pt-28 pb-36 px-4 sm:px-6 lg:px-8 -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-40 shadow-2xl overflow-hidden border-t-8 border-cream/5">
+        {/* Corkboard texture pattern (simple CSS repeating linear gradient) */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.3) 2px, transparent 2px)', backgroundSize: '16px 16px' }} />
+        
+        <div className="relative max-w-7xl mx-auto space-y-16 z-10">
+          <div className="text-center space-y-3">
+            <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-cream font-heading font-extrabold text-xs uppercase tracking-wider">
+              <History className="w-3.5 h-3.5 inline mr-1" /> Community
+            </span>
+            <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight text-primary drop-shadow-md">
+              What Chembur Says
+            </h2>
+            <p className="text-cream/80 max-w-xl mx-auto font-medium text-sm sm:text-base">
+              Real reviews from real people who love their burgers messy and delicious.
+            </p>
+            <div className="pt-4">
+              <button
+                onClick={handlePinReviewClick}
+                className="inline-flex items-center justify-center gap-2 bg-cream text-dark hover:bg-cream-light font-heading font-black text-sm uppercase tracking-wide px-6 py-3 rounded-full shadow-md transition-all hover:-translate-y-1"
+              >
+                <Pin className="w-4 h-4" />
+                Pin Your Review
+              </button>
+            </div>
+          </div>
+
+          {/* Sticky Notes Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 pb-12 px-2 md:px-0">
+            {reviews.map((review) => (
+              <div 
+                key={review.id}
+                className={`anim-sticky-note relative ${review.colorClass} p-6 pb-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform ${review.rotateClass} hover:rotate-0 hover:-translate-y-2 group cursor-crosshair`}
+              >
+                {/* Pushpin */}
+                <div className={`absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 ${review.pinClass} rounded-full shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.3),_2px_4px_6px_rgba(0,0,0,0.4)] z-10`} />
+                <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-3 ${review.pinClass}/50 -z-10 blur-sm`} />
+                
+                <div className={`font-serif text-lg leading-relaxed ${review.textClass} mb-6 italic opacity-90 group-hover:opacity-100 transition-opacity`}>
+                  "{review.text}"
+                </div>
+                <div className={`font-heading font-bold text-sm ${review.textClass}/80 text-right`}>- {review.author_name}</div>
+                {/* Tape corner effect */}
+                <div className="absolute bottom-0 right-0 w-8 h-8 bg-black/5" style={{ clipPath: 'polygon(100% 0, 0% 100%, 100% 100%)' }}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 4. Dish Detail Modal */}
       {selectedDish && (
         <div 
@@ -333,6 +478,42 @@ export function About() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Review Submission Modal */}
+      {showReviewModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/80 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setShowReviewModal(false)}
+        >
+          <div 
+            className="bg-cream-light border-4 border-dark rounded-3xl max-w-lg w-full p-8 shadow-[12px_12px_0px_rgba(43,24,16,1)] relative animate-scaleUp text-dark"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowReviewModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-dark/10 text-dark transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="font-heading font-black text-2xl text-dark mb-4 flex items-center gap-2">
+              <Pin className="text-primary w-6 h-6" /> Pin Your Review
+            </h3>
+            <textarea
+              value={newReviewText}
+              onChange={(e) => setNewReviewText(e.target.value)}
+              placeholder="What did you think of the food? (Keep it messy!)"
+              className="w-full bg-white/50 border-2 border-dark/20 rounded-xl p-4 min-h-[120px] font-serif resize-none focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all"
+            />
+            <button
+              onClick={submitReview}
+              disabled={!newReviewText.trim() || isSubmitting}
+              className="mt-6 w-full bg-primary hover:bg-primary-dark text-cream font-heading font-bold uppercase tracking-wider py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              {isSubmitting ? 'Posting...' : 'Post Review'}
+            </button>
           </div>
         </div>
       )}

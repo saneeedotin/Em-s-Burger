@@ -54,6 +54,13 @@ export function AdminLayout() {
             <Award size={20} />
             Loyalty Override
           </NavLink>
+          <NavLink 
+            to="/admin/menu" 
+            className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-primary text-cream' : 'text-cream/70 hover:bg-white/5 hover:text-cream'}`}
+          >
+            <Store size={20} />
+            Menu
+          </NavLink>
         </nav>
 
         <div className="p-4 border-t border-white/10">

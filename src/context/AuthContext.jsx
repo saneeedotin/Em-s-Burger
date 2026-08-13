@@ -1,307 +1,146 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../config/supabase';
 
 const AuthContext = createContext();
 
-const DEMO_USER = {
-  id: "u_demo_001",
-  name: "Aditi Rao",
-  email: "demo@emsburgers.com",
-  password: "demo1234",
-  hashCode: "1482",
-  loyaltyPoints: 6,
-  beveragePoints: 2,
-  favourites: ["ufo-burger", "destroyed-fries", "mango-boba-shake"],
-  orders: [
-    {
-      id: "o_1042",
-      date: "2026-07-18",
-      items: [
-        { name: "UFO Burger", qty: 1, price: 249 },
-        { name: "Destroyed Fries", qty: 1, price: 179 },
-        { name: "Classic Cold Coffee", qty: 1, price: 129 }
-      ],
-      total: 557,
-      status: "delivered"
-    },
-    {
-      id: "o_1038",
-      date: "2026-07-12",
-      items: [
-        { name: "Pull Me Up Burger", qty: 1, price: 299 },
-        { name: "Mac & Cheese Bites", qty: 1, price: 169 }
-      ],
-      total: 468,
-      status: "delivered"
-    },
-    {
-      id: "o_1025",
-      date: "2026-07-05",
-      items: [
-        { name: "EM's Double Smash", qty: 1, price: 279 },
-        { name: "Sparkling Hibiscus Lemonade", qty: 1, price: 119 }
-      ],
-      total: 398,
-      status: "delivered"
-    },
-    {
-      id: "o_1011",
-      date: "2026-06-28",
-      items: [
-        { name: "Veggie Avocado Smash", qty: 1, price: 219 },
-        { name: "Mango Passion Boba", qty: 1, price: 169 }
-      ],
-      total: 388,
-      status: "delivered"
-    }
-  ]
+const ADMIN_CREDENTIALS = {
+  email: 'admin@emsburgers.com',
+  password: 'adminpassword123'
 };
 
 export function AuthProvider({ children }) {
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem('ems_users');
-    if (saved) {
-      try {
-        const parsedUsers = JSON.parse(saved);
-        // Ensure legacy users have a hashCode
-        return parsedUsers.map(user => {
-          if (!user.hashCode) {
-            if (user.id === 'u_demo_001') return { ...user, hashCode: '1482' };
-            if (user.id === 'u_demo_002') return { ...user, hashCode: '9274' };
-            if (user.id === 'u_demo_003') return { ...user, hashCode: '5821' };
-            return { ...user, hashCode: Math.floor(1000 + Math.random() * 9000).toString() };
-          }
-          return user;
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    // Provide initial mock data if none exists
-    return [
-      DEMO_USER,
-      {
-        id: "u_demo_002",
-        name: "Rahul Verma",
-        email: "rahul@emsburgers.com",
-        password: "password",
-        hashCode: "9274",
-        loyaltyPoints: 3,
-        beveragePoints: 5,
-        favourites: ["pull-me-up"],
-        orders: [
-          {
-            id: "o_1044",
-            date: "2026-08-01",
-            items: [{ name: "UFO Burger", qty: 2, price: 249 }],
-            total: 498,
-            status: "preparing"
-          }
-        ]
-      },
-      {
-        id: "u_demo_003",
-        name: "Sneha Patel",
-        email: "sneha@emsburgers.com",
-        password: "password",
-        hashCode: "5821",
-        loyaltyPoints: 9, // One away from free
-        beveragePoints: 9,
-        favourites: ["classic-cold-coffee", "destroyed-fries"],
-        orders: [
-          {
-            id: "o_1045",
-            date: "2026-08-05",
-            items: [{ name: "Spicy Chicken Smasher", qty: 1, price: 269 }],
-            total: 269,
-            status: "pending"
-          }
-        ]
-      }
-    ];
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    const savedSession = localStorage.getItem('ems_current_user');
-    if (savedSession) {
-      try {
-        return JSON.parse(savedSession);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    // Default to null so user can explicitly test login or click "Demo Login"
-    return null;
-  });
-
-  // Sync users list to localStorage
   useEffect(() => {
-    localStorage.setItem('ems_users', JSON.stringify(users));
-  }, [users]);
-
-  // Sync currentUser session to localStorage
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('ems_current_user', JSON.stringify(currentUser));
-      // Also update in users array
-      setUsers((prevUsers) =>
-        prevUsers.map((u) => (u.id === currentUser.id ? currentUser : u))
-      );
-    } else {
-      localStorage.removeItem('ems_current_user');
-    }
-  }, [currentUser]);
-
-  const login = (email, password) => {
-    const found = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-
-    if (found) {
-      setCurrentUser(found);
-      return { success: true };
-    }
-
-    // Special fallback for demo account if users array was cleared
-    if (email.toLowerCase() === 'demo@emsburgers.com' && password === 'demo1234') {
-      setCurrentUser(DEMO_USER);
-      return { success: true };
-    }
-
-    return { success: false, message: 'Invalid email or password. Try demo@emsburgers.com / demo1234' };
-  };
-
-  const loginAsDemo = () => {
-    const found = users.find(u => u.id === DEMO_USER.id);
-    if (found) {
-      setCurrentUser(found);
-    } else {
-      setCurrentUser(DEMO_USER);
-    }
-    return { success: true };
-  };
-
-  const signup = (name, email, password) => {
-    const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (existing) {
-      return { success: false, message: 'An account with this email already exists.' };
-    }
-
-    const newUser = {
-      id: `u_${Date.now()}`,
-      name,
-      email,
-      password,
-      hashCode: Math.floor(1000 + Math.random() * 9000).toString(),
-      loyaltyPoints: 1, // Start with 1 welcome stamp!
-      beveragePoints: 0,
-      favourites: [],
-      orders: []
-    };
-
-    setUsers((prev) => [...prev, newUser]);
-    setCurrentUser(newUser);
-    return { success: true };
-  };
-
-  const logout = () => {
-    setCurrentUser(null);
-  };
-
-  const toggleFavourite = (itemId) => {
-    if (!currentUser) return false;
-
-    const exists = currentUser.favourites.includes(itemId);
-    const updatedFavourites = exists
-      ? currentUser.favourites.filter((id) => id !== itemId)
-      : [...currentUser.favourites, itemId];
-
-    setCurrentUser({
-      ...currentUser,
-      favourites: updatedFavourites
-    });
-
-    return !exists; // returns true if added, false if removed
-  };
-
-  const updateLoyaltyPoints = (newPoints) => {
-    if (!currentUser) return;
-    const clampedPoints = Math.min(9, Math.max(0, newPoints));
-    setCurrentUser({
-      ...currentUser,
-      loyaltyPoints: clampedPoints
-    });
-  };
-
-  const updateBeveragePoints = (newPoints) => {
-    if (!currentUser) return;
-    const clampedPoints = Math.min(9, Math.max(0, newPoints));
-    setCurrentUser({
-      ...currentUser,
-      beveragePoints: clampedPoints
-    });
-  };
-
-  // Admin Functions
-  const adminUpdateUserLoyalty = (userId, points, type = 'burger') => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === userId) {
-        const clampedPoints = Math.min(9, Math.max(0, points));
-        return {
-          ...u,
-          [type === 'burger' ? 'loyaltyPoints' : 'beveragePoints']: clampedPoints
-        };
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
-      return u;
-    }));
-    
-    // Update currentUser if the admin is editing their own account (rare but possible)
-    if (currentUser?.id === userId) {
-      const clampedPoints = Math.min(9, Math.max(0, points));
-      setCurrentUser(prev => ({
-        ...prev,
-        [type === 'burger' ? 'loyaltyPoints' : 'beveragePoints']: clampedPoints
-      }));
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setCurrentUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setCurrentUser(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const adminUpdateOrderStatus = (userId, orderId, status) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === userId) {
-        return {
-          ...u,
-          orders: u.orders.map(o => o.id === orderId ? { ...o, status } : o)
-        };
+  const login = async (email, password) => {
+    try {
+      // Hardcoded admin check
+      if (email.toLowerCase() === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+        setCurrentUser({ id: 'admin', email: ADMIN_CREDENTIALS.email, role: 'admin', name: 'Admin' });
+        return { success: true, isAdmin: true };
       }
-      return u;
-    }));
-    
-    // Update currentUser if applicable
-    if (currentUser?.id === userId) {
-      setCurrentUser(prev => ({
-        ...prev,
-        orders: prev.orders.map(o => o.id === orderId ? { ...o, status } : o)
-      }));
+
+      // Hardcoded demo user check
+      if (email.toLowerCase() === 'demo@emsburgers.com') {
+        setCurrentUser({ id: 'demo-user', email: 'demo@emsburgers.com', role: 'user', name: 'Demo User', stamps: 5 });
+        return { success: true, isAdmin: false };
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      
+      return { success: true, isAdmin: false };
+    } catch (error) {
+      return { success: false, message: error.message };
     }
   };
+
+  const signup = async (name, email, password) => {
+    try {
+      // 1. Sign up user in Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // 2. Generate Hash ID
+        const hashId = '#' + Math.floor(1000 + Math.random() * 9000).toString();
+
+        // 3. Create profile in public.profiles
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              email: email,
+              hash_id: hashId,
+              role: 'user',
+              stamps: 1 // Start with 1 welcome stamp!
+            }
+          ]);
+        
+        if (profileError) throw profileError;
+      }
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
+
+  const logout = async () => {
+    if (currentUser?.role === 'admin') {
+      setCurrentUser(null);
+    } else {
+      await supabase.auth.signOut();
+    }
+  };
+
+  // Profile update functions - these should call Supabase in a real app
+  const toggleFavourite = async (itemId) => {
+    // Requires a favourites table or array in profiles. (Placeholder for now)
+    return false;
+  };
+
+  const isDemoAccount = currentUser?.email === 'demo@emsburgers.com';
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
-        users, // EXPOSED FOR ADMIN
+        loading,
         login,
-        loginAsDemo,
         signup,
         logout,
         toggleFavourite,
-        updateLoyaltyPoints,
-        updateBeveragePoints,
-        adminUpdateUserLoyalty,
-        adminUpdateOrderStatus,
-        isDemoAccount: currentUser?.email === 'demo@emsburgers.com'
+        isDemoAccount,
       }}
     >
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
@@ -313,3 +152,4 @@ export function useAuth() {
   }
   return context;
 }
+

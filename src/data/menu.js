@@ -16,6 +16,7 @@ export const MENU_ITEMS = [
   // CLASSIC BURGERS
   {
     id: "classic-cheeseburger-chicken",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "The Classic Cheeseburger (Chicken)",
     category: "classic",
     isVeg: false,
@@ -27,6 +28,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "double-stack-burger-chicken",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Double Stack Burger (Chicken)",
     category: "classic",
     isVeg: false,
@@ -38,6 +40,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "veggie-classic",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Veggie Classic",
     category: "classic",
     isVeg: true,
@@ -49,6 +52,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "spicy-classic",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Spicy Classic",
     category: "classic",
     isVeg: true,
@@ -62,6 +66,7 @@ export const MENU_ITEMS = [
   // SIGNATURES
   {
     id: "the-truffle-mushroom",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "The Truffle Mushroom",
     category: "signatures",
     isVeg: true,
@@ -73,6 +78,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "hot-honey-bbq-chicken",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Hot Honey / BBQ Chicken",
     category: "signatures",
     isVeg: false,
@@ -84,6 +90,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "melt-down",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Melt Down",
     category: "signatures",
     isVeg: false,
@@ -95,6 +102,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "breakfast-burger",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Breakfast Burger",
     category: "signatures",
     isVeg: false,
@@ -105,6 +113,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "thai-fish-burger",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Thai Fish Burger",
     category: "signatures",
     isVeg: false,
@@ -117,6 +126,7 @@ export const MENU_ITEMS = [
   // UFO BURGERS
   {
     id: "ufo-bbq-chicken",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "BBQ Chicken UFO",
     category: "ufo",
     isVeg: false,
@@ -128,6 +138,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "ufo-juicy-lucy-potato",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Juicy Lucy (Potato) UFO",
     category: "ufo",
     isVeg: true,
@@ -138,6 +149,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "ufo-juicy-lucy-chicken",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Juicy Lucy (Chicken) UFO",
     category: "ufo",
     isVeg: false,
@@ -148,6 +160,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "ufo-mumbai",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Mumbai UFO",
     category: "ufo",
     isVeg: true,
@@ -161,6 +174,7 @@ export const MENU_ITEMS = [
   // CROISSANT TAKEOVER
   {
     id: "croissant-chicken",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Chicken Croissant Takeover",
     category: "croissant",
     isVeg: false,
@@ -171,6 +185,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "croissant-lamb",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Lamb Croissant Takeover",
     category: "croissant",
     isVeg: false,
@@ -182,6 +197,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "croissant-veg",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Veg (Cottage Cheese Crumble) Croissant",
     category: "croissant",
     isVeg: true,
@@ -194,6 +210,7 @@ export const MENU_ITEMS = [
   // PULL ME UP BURGERS
   {
     id: "pmu-chicken",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Pull Me Up (Chicken)",
     category: "pull-me-up",
     isVeg: false,
@@ -205,6 +222,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "pmu-cottage-cheese",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Pull Me Up (Cottage Cheese)",
     category: "pull-me-up",
     isVeg: true,
@@ -218,6 +236,7 @@ export const MENU_ITEMS = [
   // AVOCADO BURGER
   {
     id: "avocado-veggie",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "Veggie Avocado Burger",
     category: "avocado",
     isVeg: true,
@@ -230,6 +249,7 @@ export const MENU_ITEMS = [
   // SLIDER BUCKETS
   {
     id: "slider-bucket-3",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "3 Sliders Bucket",
     category: "sliders",
     isVeg: false,
@@ -241,6 +261,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "slider-bucket-6",
+    zomatoLink: "https://www.zomato.com/mobile",
     name: "6 Sliders Party Bucket",
     category: "sliders",
     isVeg: false,
@@ -253,6 +274,7 @@ export const MENU_ITEMS = [
   // SIDES & SALADS
   {
     id: "fries-salted-periperi",
+    zomatoLink: "https://zomato.onelink.me/xqzv/5bo6grab",
     name: "Fries (Salted / Peri Peri)",
     category: "sides",
     isVeg: true,
@@ -263,6 +285,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "truffle-fries",
+    zomatoLink: "https://zomato.onelink.me/xqzv/7yd69ui2",
     name: "Truffle Fries",
     category: "sides",
     isVeg: true,
@@ -274,6 +297,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "destroyed-fries",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629389911da2d4",
     name: "Destroyed Fries",
     category: "sides",
     isVeg: false,
@@ -285,6 +309,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "deep-fried-mac-cheese",
+    zomatoLink: "https://zomato.onelink.me/xqzv/m7jiau8w",
     name: "Deep-Fried Mac & Cheese",
     category: "sides",
     isVeg: true,
@@ -295,6 +320,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "chicken-tenders-3pcs",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629360911da62d",
     name: "Chicken Tenders (3 Pcs)",
     category: "sides",
     isVeg: false,
@@ -305,6 +331,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "ems-house-salad",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629222911daff7",
     name: "Em's House Salad",
     category: "sides",
     isVeg: true,
@@ -317,6 +344,7 @@ export const MENU_ITEMS = [
   // COLD BEVERAGES
   {
     id: "strawberry-pop",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629716911da500",
     name: "Strawberry Pop",
     category: "cold-drinks",
     isVeg: true,
@@ -327,6 +355,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "choco-blast",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629556911dae34",
     name: "Choco Blast Shake",
     category: "cold-drinks",
     isVeg: true,
@@ -338,6 +367,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "banana-slide",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629529911da188",
     name: "Banana Slide Shake",
     category: "cold-drinks",
     isVeg: true,
@@ -348,6 +378,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "mango-mash",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629663911da24e",
     name: "Mango Mash",
     category: "cold-drinks",
     isVeg: true,
@@ -358,6 +389,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "vanilla-storm",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629729911da98f",
     name: "Vanilla Storm",
     category: "cold-drinks",
     isVeg: true,
@@ -368,6 +400,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "coffee-kick",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629621911da742",
     name: "Coffee Kick Cold Coffee",
     category: "cold-drinks",
     isVeg: true,
@@ -379,6 +412,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "coke-sprite-diet",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629774911da84c",
     name: "Coke / Sprite / Diet Coke",
     category: "cold-drinks",
     isVeg: true,
@@ -391,6 +425,7 @@ export const MENU_ITEMS = [
   // HOT BEVERAGES
   {
     id: "dark-chocolate",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629633911dabff",
     name: "Dark Chocolate Hot Brew",
     category: "hot-drinks",
     isVeg: true,
@@ -402,6 +437,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "milk-chocolate",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629679911daa81",
     name: "Milk Chocolate Hot Brew",
     category: "hot-drinks",
     isVeg: true,
@@ -412,6 +448,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "white-chocolate",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629753911dadf6",
     name: "White Chocolate Hot Brew",
     category: "hot-drinks",
     isVeg: true,
@@ -422,6 +459,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "cappuccino",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629543911da4ec",
     name: "Cappuccino",
     category: "hot-drinks",
     isVeg: true,
@@ -432,6 +470,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "latte",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629649911da984",
     name: "Latte",
     category: "hot-drinks",
     isVeg: true,
@@ -442,6 +481,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "mocha",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629698911da7c8",
     name: "Mocha",
     category: "hot-drinks",
     isVeg: true,
@@ -452,6 +492,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "americano",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145629462911dabc1",
     name: "Americano",
     category: "hot-drinks",
     isVeg: true,

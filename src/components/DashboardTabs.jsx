@@ -1,12 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Award, ShoppingBag, Heart } from 'lucide-react';
+import { Award, ShoppingBag } from 'lucide-react';
 
-export function DashboardTabs({ activeTab, setActiveTab, favouritesCount, ordersCount }) {
+export function DashboardTabs({ activeTab, setActiveTab, ordersCount }) {
   const tabs = [
     { id: 'loyalty', label: 'My Loyalty Points', icon: Award, badge: null },
     { id: 'orders', label: 'Previous Orders', icon: ShoppingBag, badge: ordersCount },
-    { id: 'favourites', label: 'My Favourites', icon: Heart, badge: favouritesCount },
   ];
 
   return (

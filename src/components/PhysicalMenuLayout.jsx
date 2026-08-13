@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MENU_ITEMS } from '../data/menu';
 
-export function PhysicalMenuLayout({ isVegOnly }) {
+export function PhysicalMenuLayout({ isVegOnly, onSelect }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   // Group items by category
@@ -31,7 +31,11 @@ export function PhysicalMenuLayout({ isVegOnly }) {
         </h3>
         <div className="space-y-4">
           {categoryItems.map(item => (
-            <div key={item.id} className="flex justify-between items-start gap-4">
+            <div 
+              key={item.id} 
+              onClick={() => onSelect && onSelect(item)}
+              className="flex justify-between items-start gap-4 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors -mx-2"
+            >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h4 className="font-heading font-extrabold text-base text-cream">{item.name}</h4>

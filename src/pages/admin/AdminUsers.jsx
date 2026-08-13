@@ -1,9 +1,55 @@
-import React from 'react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../config/supabase';
 import { User, ShoppingBag, Award, Heart } from 'lucide-react';
 
 export function AdminUsers() {
-  const { users } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      // In a real production app, counting orders per user should be a view or aggregate query.
+      // For this migration, we will fetch profiles and then a summary of orders if possible,
+      // but to keep it simple we'll just fetch profiles and fetch all orders to aggregate locally.
+      
+      const [profilesRes, ordersRes] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('orders').select('user_id, id')
+      ]);
+
+      if (profilesRes.error) throw profilesRes.error;
+      if (ordersRes.error) throw ordersRes.error;
+
+      // Aggregate orders by user
+      const orderCounts = (ordersRes.data || []).reduce((acc, order) => {
+        acc[order.user_id] = (acc[order.user_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      const formattedUsers = (profilesRes.data || []).map(profile => ({
+        id: profile.id,
+        name: profile.name || profile.email.split('@')[0],
+        email: profile.email,
+        stamps: profile.stamps || 0,
+        orderCount: orderCounts[profile.id] || 0,
+        favourites: [] // Mock for now until a real favourites system is built
+      }));
+
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center text-dark/60">Loading customers...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -47,25 +93,21 @@ export function AdminUsers() {
                   <td className="p-4 text-center">
                     <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-dark/5 text-dark font-medium text-sm">
                       <ShoppingBag size={14} />
-                      {user.orders?.length || 0}
+                      {user.orderCount}
                     </div>
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex flex-col items-center gap-1">
                       <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-accent/20 text-accent font-bold text-xs">
                         <Award size={14} />
-                        {user.loyaltyPoints}/10 Burgers
-                      </div>
-                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#F3732A]/20 text-[#F3732A] font-bold text-xs">
-                        <Award size={14} />
-                        {user.beveragePoints}/10 Drinks
+                        {user.stamps}/10 Stamps
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
                     <div className="flex flex-wrap gap-1">
                       {user.favourites?.map((fav, i) => (
-                        <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-50 text-primary text-xs font-medium border border-primary/10">
+                        <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-xs font-medium border border-primary/10">
                           <Heart size={10} className="fill-current" />
                           {fav.replace(/-/g, ' ')}
                         </span>

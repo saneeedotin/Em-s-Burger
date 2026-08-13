@@ -1,8 +1,15 @@
 import React from 'react';
 import { LoyaltyPunchCard } from '../components/LoyaltyPunchCard';
 import { QrCode, Sparkles, Gift, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export function Loyalty() {
+  const { currentUser } = useAuth();
+  
+  // Use actual user points if available, otherwise fallback to demo values
+  const loyaltyPoints = currentUser?.loyaltyPoints ?? 3;
+  const beveragePoints = currentUser?.beveragePoints ?? 2;
+
   return (
     <div className="py-16 bg-cream text-dark">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -24,7 +31,7 @@ export function Loyalty() {
         </div>
 
         {/* Interactive Punch Card Component */}
-        <LoyaltyPunchCard initialCount={3} />
+        <LoyaltyPunchCard initialCount={loyaltyPoints} initialBeverageCount={beveragePoints} />
 
         {/* How It Works Steps */}
         <div className="bg-cream-light rounded-4xl p-8 border-2 border-primary/15 shadow-md space-y-6">

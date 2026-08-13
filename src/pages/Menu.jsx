@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MENU_CATEGORIES, MENU_ITEMS } from '../data/menu';
+import { useMenu } from '../context/MenuContext';
 import { MenuItemCard } from '../components/MenuItemCard';
 import { PhysicalMenuLayout } from '../components/PhysicalMenuLayout';
+import { ItemModal } from '../components/ItemModal';
 import { Utensils, Sparkles, Filter, Search, LayoutGrid, List, BookOpen } from 'lucide-react';
 import { useVegMode } from '../context/VegModeContext';
 
 export function Menu() {
   const { isVegOnly } = useVegMode();
+  const { categories: MENU_CATEGORIES, items: MENU_ITEMS } = useMenu();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [vegFilter, setVegFilter] = useState('all'); // 'all' | 'veg' | 'nonveg'
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list' | 'physical'
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const filteredItems = MENU_ITEMS.filter((item) => {
     // Category match
@@ -33,27 +37,35 @@ export function Menu() {
   });
 
   return (
-    <div className="py-12 bg-cream min-h-screen text-dark">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="pt-6 pb-12 sm:py-12 bg-cream min-h-screen text-dark relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-10">
         
         {/* Menu Header */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-heading font-extrabold text-xs uppercase tracking-wider">
-            <Utensils className="w-4 h-4" />
-            <span>Chembur Menu Showcase</span>
-          </div>
-
-          <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl text-dark tracking-tight">
-            STACKED BURGERS & CRAFT SIDES
+        <div className="max-w-3xl sm:mx-auto flex justify-between items-center">
+          <h1 className="font-heading font-black text-3xl sm:text-5xl lg:text-6xl text-dark tracking-tight sm:text-center text-left">
+            Menu
           </h1>
-
-          <p className="text-dark/80 text-base sm:text-lg font-medium leading-relaxed">
-            All prices are estimated placeholders until final client confirmation. Every item is cooked fresh to order in Chembur Camp!
-          </p>
+          
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-cream rounded-full font-heading font-bold text-xs sm:text-sm shadow-md transition-transform active:scale-95"
+          >
+            <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">{showFilters ? 'Hide Options' : 'Menu Options'}</span>
+            <span className="sm:hidden">{showFilters ? 'Hide' : 'Options'}</span>
+          </button>
         </div>
 
         {/* Filter Controls & Search Bar */}
-        <div className="bg-cream-light p-6 rounded-4xl border-2 border-primary/15 shadow-lg space-y-6">
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
+              animate={{ opacity: 1, height: 'auto', overflow: 'visible' }}
+              exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="bg-cream-light p-4 sm:p-6 rounded-3xl sm:rounded-4xl border-2 border-primary/15 shadow-lg space-y-6">
           
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             
@@ -176,23 +188,26 @@ export function Menu() {
           </div>
         )}
 
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Dynamic View Rendering */}
         {viewMode === 'physical' ? (
-          <PhysicalMenuLayout isVegOnly={isVegOnly} />
+          <PhysicalMenuLayout isVegOnly={isVegOnly} onSelect={setSelectedItem} />
         ) : (
           <motion.div 
             layout 
-            className={`grid gap-6 ${
+            className={`grid gap-3 sm:gap-6 ${
               viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4' 
+                ? 'grid-cols-3 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4' 
                 : 'grid-cols-1 max-w-4xl mx-auto'
             }`}
           >
             <AnimatePresence>
               {filteredItems.map((item) => (
-                <MenuItemCard key={item.id} item={item} viewMode={viewMode} />
+                <MenuItemCard key={item.id} item={item} viewMode={viewMode} onSelect={setSelectedItem} />
               ))}
             </AnimatePresence>
           </motion.div>
@@ -218,6 +233,13 @@ export function Menu() {
         )}
 
       </div>
+      
+      {/* Item Modal */}
+      <ItemModal 
+        item={selectedItem} 
+        isOpen={!!selectedItem} 
+        onClose={() => setSelectedItem(null)} 
+      />
     </div>
   );
 }
