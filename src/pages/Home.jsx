@@ -11,10 +11,12 @@ import { WaveDivider } from '../components/WaveDivider';
 import { TakeAwaySection } from '../components/TakeAwaySection';
 import { Gallery } from '../components/Gallery';
 import { Heart, Sparkles, Utensils, Star, ShieldCheck, MapPin } from 'lucide-react';
+import { useVegMode } from '../context/VegModeContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Home() {
+  const { isVegOnly } = useVegMode();
   const storyRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -123,8 +125,8 @@ export function Home() {
                   <div className="space-y-6">
                     <div className="story-img-container aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-cream bg-primary-dark">
                       <img
-                        src="https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=600&q=80"
-                        alt="Pull Me Up Cheese Burger"
+                        src={isVegOnly ? "/assets/Pull me up.png" : "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=600&q=80"}
+                        alt={isVegOnly ? "Veg Pull Me Up Cheese Burger" : "Pull Me Up Cheese Burger"}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -139,8 +141,8 @@ export function Home() {
                     </div>
                     <div className="story-img-container aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-cream bg-primary-dark">
                       <img
-                        src="/assets/708155000_17892310275525648_6367245464321747317_n.jpg"
-                        alt="Destroyed Fries"
+                        src={isVegOnly ? "/assets/Truffle Fries.png" : "/assets/708155000_17892310275525648_6367245464321747317_n.jpg"}
+                        alt={isVegOnly ? "Truffle Fries" : "Destroyed Fries"}
                         className="w-full h-full object-cover"
                       />
                     </div>

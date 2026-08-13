@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { MapEmbed } from '../components/MapEmbed';
@@ -6,25 +7,93 @@ import { MapPin, Phone, Instagram, ExternalLink, MessageCircle, Sparkles, Clock 
 
 export function Contact() {
   const contactContainerRef = useRef(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === '#map') {
+      const timer = setTimeout(() => {
+        const mapElement = document.getElementById('map');
+        if (mapElement) {
+          mapElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
 
   useGSAP(
     () => {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-      // Fix double-render opacity bug using fromTo
-      gsap.fromTo('.anim-hero-text', 
-        { y: 50, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', stagger: 0.1 }
+      const tl = gsap.timeline({
+        defaults: { ease: 'power3.out' },
+        delay: 0.1,
+      });
+
+      // Card 1 (Red Hero) slides down from top
+      tl.fromTo(
+        '.anim-card-1',
+        { y: -140, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.75 }
       );
 
-      gsap.fromTo('.anim-floating-img', 
-        { scale: 0.8, opacity: 0 }, 
-        { scale: 1, opacity: 1, duration: 1, ease: 'back.out(1.5)', stagger: 0.15, delay: 0.3 }
+      // Hero text & floating items inside Card 1
+      tl.fromTo(
+        '.anim-hero-text',
+        { y: 35, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.08 },
+        '-=0.45'
       );
 
-      gsap.fromTo('.anim-contact-card', 
-        { y: 30, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', stagger: 0.08, delay: 0.5 }
+      tl.fromTo(
+        '.anim-floating-img',
+        { scale: 0.7, opacity: 0, rotate: -10 },
+        { scale: 1, opacity: 1, rotate: 0, duration: 0.7, ease: 'back.out(1.4)', stagger: 0.1 },
+        '-=0.35'
+      );
+
+      // Card 2 (Dark Contact section) slides down from above over Card 1
+      tl.fromTo(
+        '.anim-card-2',
+        { y: -160, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out' },
+        '-=0.35'
+      );
+
+      tl.fromTo(
+        '.anim-card-2-header',
+        { y: 25, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45 },
+        '-=0.4'
+      );
+
+      tl.fromTo(
+        '.anim-contact-card',
+        { y: 35, opacity: 0, scale: 0.96 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.2)', stagger: 0.09 },
+        '-=0.3'
+      );
+
+      // Card 3 (Yellow Map section) slides down from above over Card 2
+      tl.fromTo(
+        '.anim-card-3',
+        { y: -160, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out' },
+        '-=0.35'
+      );
+
+      tl.fromTo(
+        '.anim-card-3-header',
+        { y: 25, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45 },
+        '-=0.4'
+      );
+
+      tl.fromTo(
+        '.anim-map-container',
+        { y: 35, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.55 },
+        '-=0.3'
       );
     },
     { scope: contactContainerRef }
@@ -34,7 +103,7 @@ export function Contact() {
     <div ref={contactContainerRef} className="bg-cream min-h-screen text-dark relative font-sans overflow-x-hidden">
       
       {/* SECTION 1: Wavy Hero Banner (Terracotta Red Background) */}
-      <section className="relative bg-primary text-cream pt-20 pb-28 px-4 sm:px-6 lg:px-8 rounded-b-[60px] md:rounded-b-[100px] z-10 shadow-lg">
+      <section className="anim-card-1 relative bg-primary text-cream pt-20 pb-28 px-4 sm:px-6 lg:px-8 rounded-b-[60px] md:rounded-b-[100px] z-10 shadow-lg">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-7 space-y-6 text-left">
@@ -73,10 +142,10 @@ export function Contact() {
       </section>
 
       {/* SECTION 2: Info Grid & Contact Cards (Deep Dark Brown Background) */}
-      <section className="relative bg-dark text-cream pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-[60px] md:rounded-[100px] z-20 shadow-xl">
+      <section className="anim-card-2 relative bg-dark text-cream pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-[60px] md:rounded-[100px] z-20 shadow-xl">
         <div className="max-w-7xl mx-auto space-y-12">
           
-          <div className="text-center space-y-3">
+          <div className="anim-card-2-header text-center space-y-3">
             <span className="inline-block px-3 py-1 rounded-full bg-cream/10 text-cream font-heading font-extrabold text-xs uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5 inline mr-1 text-accent" /> Connect With Us
             </span>
@@ -170,10 +239,10 @@ export function Contact() {
       </section>
 
       {/* SECTION 3: Map & Directions (Mustard Yellow Background) */}
-      <section className="relative bg-accent text-dark pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-30 shadow-2xl">
+      <section id="map" className="anim-card-3 relative bg-accent text-dark pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-30 shadow-2xl">
         <div className="max-w-7xl mx-auto space-y-12">
           
-          <div className="text-center space-y-3">
+          <div className="anim-card-3-header text-center space-y-3">
             <span className="inline-block px-3 py-1 rounded-full bg-dark/10 text-dark font-heading font-extrabold text-xs uppercase tracking-wider">
               <Clock className="w-3.5 h-3.5 inline mr-1" /> Hours & Location
             </span>
@@ -185,7 +254,7 @@ export function Contact() {
             </p>
           </div>
 
-          <div className="rounded-4xl overflow-hidden border-4 border-dark/95 shadow-2xl bg-cream-light transform hover:scale-[1.01] transition-transform duration-300">
+          <div className="anim-map-container rounded-4xl overflow-hidden border-4 border-dark/95 shadow-2xl bg-cream-light transform hover:scale-[1.01] transition-transform duration-300">
             <MapEmbed />
           </div>
 

@@ -4,12 +4,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import { RequireAuth } from './components/RequireAuth';
 import { SmoothScroll } from './components/SmoothScroll';
-import { ScrollProgressMascot } from './components/ScrollProgressMascot';
 import { BurgerCursor } from './components/BurgerCursor';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { LoadingScreen } from './components/LoadingScreen';
 import { PageTransition } from './components/PageTransition';
+import { VegModeProvider } from './context/VegModeContext';
 
 import { Home } from './pages/Home';
 import { Menu } from './pages/Menu';
@@ -19,6 +19,7 @@ import { Loyalty } from './pages/Loyalty';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
+import { GalleryPage } from './pages/GalleryPage';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -42,11 +43,11 @@ export function App() {
 
   return (
     <AuthProvider>
-      <LoadingScreen />
+      <VegModeProvider>
+        <LoadingScreen />
       {!isAdmin && <BurgerCursor />}
       <SmoothScroll>
         <ScrollToTop />
-        {!isAdmin && <ScrollProgressMascot />}
         
         {isAdmin ? (
           <Routes location={location}>
@@ -67,6 +68,7 @@ export function App() {
                   <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/menu" element={<Menu />} />
+                    <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/loyalty" element={<Loyalty />} />
@@ -89,6 +91,7 @@ export function App() {
           </div>
         )}
       </SmoothScroll>
+      </VegModeProvider>
     </AuthProvider>
   );
 }

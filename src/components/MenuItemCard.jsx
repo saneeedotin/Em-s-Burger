@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Sparkles, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export function MenuItemCard({ item, onSelect }) {
+export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
   const { id, name, isVeg, description, price, image, badge, isSignature } = item;
   const { currentUser, toggleFavourite } = useAuth();
   const navigate = useNavigate();
@@ -32,11 +32,11 @@ export function MenuItemCard({ item, onSelect }) {
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
       className={`group relative bg-primary text-cream rounded-3xl p-4 sm:p-5 border-2 ${
         isSignature ? 'border-primary-dark/40 shadow-xl' : 'border-primary-dark/20 shadow-md'
-      } flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:border-primary-dark/60`}
+      } flex ${viewMode === 'list' ? 'flex-row items-center gap-6' : 'flex-col justify-between'} transition-all duration-300 hover:shadow-2xl hover:border-primary-dark/60`}
     >
-      <div>
+      <div className={viewMode === 'list' ? 'flex-1 flex gap-6' : ''}>
         {/* Image Container with Badges */}
-        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-4">
+        <div className={`relative rounded-2xl overflow-hidden shrink-0 ${viewMode === 'list' ? 'w-32 h-32 md:w-48 md:h-48 aspect-square' : 'aspect-[4/5] mb-4'}`}>
           <img
             src={image}
             alt={name}
@@ -113,7 +113,7 @@ export function MenuItemCard({ item, onSelect }) {
         </div>
 
         {/* Title & Description */}
-        <div className="space-y-2">
+        <div className={`space-y-2 ${viewMode === 'list' ? 'flex flex-col justify-center flex-1' : ''}`}>
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-heading font-bold text-xl sm:text-2xl text-cream leading-tight group-hover:text-accent transition-colors">
               {name}
@@ -130,7 +130,7 @@ export function MenuItemCard({ item, onSelect }) {
       </div>
 
       {/* Card Footer Action */}
-      <div className="mt-5 pt-3 border-t border-cream/20 flex items-center justify-between gap-2">
+      <div className={`${viewMode === 'list' ? 'flex flex-col justify-center gap-4 shrink-0 border-l border-cream/20 pl-6 ml-auto' : 'mt-5 pt-3 border-t border-cream/20 flex items-center justify-between gap-2'}`}>
         <span className="text-xs font-bold uppercase tracking-wider text-cream/50">
           {isVeg ? '100% Vegetarian' : 'Chef Special'}
         </span>

@@ -1,222 +1,463 @@
 export const MENU_CATEGORIES = [
   { id: 'all', label: 'All Items' },
-  { id: 'burgers', label: 'Stacked Burgers' },
-  { id: 'sides', label: 'Loaded Sides' },
-  { id: 'drinks', label: 'Drinks & Shakes' }
+  { id: 'classic', label: 'Classic Burgers' },
+  { id: 'signatures', label: 'Signatures' },
+  { id: 'ufo', label: 'UFO Burgers' },
+  { id: 'croissant', label: 'Croissant Takeover' },
+  { id: 'pull-me-up', label: 'Pull Me Up' },
+  { id: 'avocado', label: 'Avocado Burgers' },
+  { id: 'sliders', label: 'Slider Buckets' },
+  { id: 'sides', label: 'Sides & Salads' },
+  { id: 'cold-drinks', label: 'Cold Beverages' },
+  { id: 'hot-drinks', label: 'Hot Beverages' }
 ];
 
 export const MENU_ITEMS = [
+  // CLASSIC BURGERS
   {
-    id: "pull-me-up-burger",
-    name: "Pull Me Up",
-    category: "burgers",
+    id: "classic-cheeseburger-chicken",
+    name: "The Classic Cheeseburger (Chicken)",
+    category: "classic",
     isVeg: false,
     isSignature: true,
-    description: "Interactive molten cheese cascade poured over smashed patties on a toasted brioche bun",
-    price: 299,
-    image: "/assets/708468998_17892310314525648_8171975173938103261_n.jpg",
-    badge: "Must Try"
-  },
-  {
-    id: "classic-cheese-burger",
-    name: "The Classic Cheese Burger",
-    category: "burgers",
-    isVeg: false,
-    isSignature: true,
-    description: "Signature press-sealed saucer burger, smashed patty, melted cheddar, & EM's secret sauce",
-    price: 249,
-    image: "/assets/707763630_17892310278525648_2934076488276589577_n.jpg",
+    description: "Juicy chicken patty, cheddar, veggies, ketchup & mustard",
+    price: 329,
+    image: "/assets/The classic cheeseburger.png",
     badge: "Bestseller"
   },
   {
-    id: "double-stack",
-    name: "Double Stack",
-    category: "burgers",
+    id: "double-stack-burger-chicken",
+    name: "Double Stack Burger (Chicken)",
+    category: "classic",
     isVeg: false,
     isSignature: true,
-    description: "Double smash patties, caramelized onions, house pickles, garlic aioli & double American cheddar",
-    price: 279,
-    image: "/assets/707838302_17892310305525648_7641931861532538183_n.jpg",
+    description: "Double patty, double cheese, onions, special sauce",
+    price: 389,
+    image: "/assets/Double Stack.png",
     badge: "Chef's Pick"
-  },
-  {
-    id: "spicy-classic",
-    name: "Spicy Classic",
-    category: "burgers",
-    isVeg: false,
-    isSignature: false,
-    description: "Fried chicken breast, Nashville hot oil glaze, jalapenos and fresh veggies",
-    price: 239,
-    image: "/assets/707693613_17892310323525648_1406458977777358886_n.jpg",
-    badge: "Spicy"
-  },
-  {
-    id: "hot-honey",
-    name: "Hot Honey",
-    category: "burgers",
-    isVeg: false,
-    isSignature: false,
-    description: "Crispy fried chicken tossed in sweet and spicy hot honey glaze with crunchy onions",
-    price: 259,
-    image: "/assets/708155000_17892310275525648_6367245464321747317_n.jpg"
-  },
-  {
-    id: "the-truffle-mushroom",
-    name: "The Truffle Mushroom",
-    category: "burgers",
-    isVeg: true,
-    isSignature: false,
-    description: "Crispy patty topped with sauteed mushrooms and creamy truffle infused mayo",
-    price: 249,
-    image: "/assets/708193355_17892310257525648_910609447071688509_n.jpg"
-  },
-  {
-    id: "bbq-chicken",
-    name: "BBQ Chicken",
-    category: "burgers",
-    isVeg: false,
-    isSignature: false,
-    description: "Succulent chicken slathered in our house-made smoky BBQ sauce",
-    price: 239,
-    image: "/assets/708754354_17892310332525648_8596195610652234997_n.jpg"
   },
   {
     id: "veggie-classic",
     name: "Veggie Classic",
-    category: "burgers",
+    category: "classic",
     isVeg: true,
     isSignature: false,
-    description: "Crispy veggie patty with fresh cucumber, tomatoes and our signature sauce",
-    price: 199,
-    image: "/assets/708877450_17892310341525648_1301759277739848721_n.jpg",
+    description: "Spicy Aloo patty, cheddar, chipotle mayo",
+    price: 299,
+    image: "/assets/Veggie classic.png",
     badge: "Pure Veg"
   },
   {
-    id: "lamb-croissant-takeover",
-    name: "Lamb Croissant Takeover",
-    category: "burgers",
-    isVeg: false,
+    id: "spicy-classic",
+    name: "Spicy Classic",
+    category: "classic",
+    isVeg: true,
     isSignature: false,
-    description: "Spiced minced lamb patty tucked inside a flaky French butter croissant",
+    description: "Cottage cheese patty, jalapeños, sriracha mayo",
     price: 329,
-    image: "/assets/708959483_17892310293525648_1117848264840887243_n.jpg",
+    image: "/assets/Spicy classic.png",
+    badge: "Spicy"
+  },
+
+  // SIGNATURES
+  {
+    id: "the-truffle-mushroom",
+    name: "The Truffle Mushroom",
+    category: "signatures",
+    isVeg: true,
+    isSignature: true,
+    description: "A flavour bomb with parmesan and mozzarella loaded with truffle oil served in our brioche bun",
+    price: 429,
+    image: "/assets/Truffle Mushroom .png",
     badge: "Gourmet"
   },
   {
-    id: "veggie-avocado",
-    name: "Veggie Avocado",
-    category: "burgers",
-    isVeg: true,
-    isSignature: false,
-    description: "Crispy patty topped with fresh Hass avocado smash & cheddar",
-    price: 269,
-    image: "/assets/709135090_17892310296525648_3515263033773386689_n.jpg"
-  },
-  {
-    id: "thai-fish",
-    name: "Thai Fish",
-    category: "burgers",
+    id: "hot-honey-bbq-chicken",
+    name: "Hot Honey / BBQ Chicken",
+    category: "signatures",
     isVeg: false,
-    isSignature: false,
-    description: "Crispy fish fillet infused with fragrant Thai spices and slaw",
-    price: 279,
-    image: "/assets/710332035_17892310260525648_4575175904599759190_n.jpg"
-  },
-  {
-    id: "destroyed-fries",
-    name: "Destroyed Fries",
-    category: "sides",
-    isVeg: true,
     isSignature: true,
-    description: "Hand-cut potato fries smashed & overloaded with liquid cheddar and sauces",
-    price: 179,
-    image: "/assets/747653151_17900012526525648_4670775730377167556_n.jpg",
+    description: "Crispy fried chicken thigh, hot honey ranch",
+    price: 379,
+    image: "/assets/Hot honey_ Barbecue Chicken .png",
     badge: "Fan Favorite"
   },
   {
-    id: "mac-cheese-bites",
-    name: "Deep Fried Mac & Cheese",
-    category: "sides",
-    isVeg: true,
-    isSignature: false,
-    description: "Panko-crusted golden fried mac & three-cheese cubes served with dip",
-    price: 169,
-    image: "/assets/746439906_17900012535525648_7404237147692215871_n.jpg",
-    badge: "Crispy"
+    id: "melt-down",
+    name: "Melt Down",
+    category: "signatures",
+    isVeg: false,
+    isSignature: true,
+    description: "Double smashed chicken patty, cheese trio, sausages, egg, chef's sauce",
+    price: 449,
+    image: "/assets/Meltdown .png",
+    badge: "Must Try"
   },
   {
-    id: "salted-fries",
-    name: "Salted Fries",
-    category: "sides",
-    isVeg: true,
+    id: "breakfast-burger",
+    name: "Breakfast Burger",
+    category: "signatures",
+    isVeg: false,
     isSignature: false,
-    description: "Classic golden fries dusted with sea salt",
-    price: 119,
-    image: "/assets/746615421_17900012556525648_8159921282464443275_n.jpg"
+    description: "Pinwheel croissant, mashed & fried egg, sausages, spicy mayo",
+    price: 469,
+    image: "/assets/708193355_17892310257525648_910609447071688509_n.jpg"
   },
   {
-    id: "peri-peri-fries",
-    name: "Peri Peri Fries",
+    id: "thai-fish-burger",
+    name: "Thai Fish Burger",
+    category: "signatures",
+    isVeg: false,
+    isSignature: false,
+    description: "Thai spice marinated fish filet, slaw, Sriracha mayo",
+    price: 429,
+    image: "/assets/Thai fish.png"
+  },
+
+  // UFO BURGERS
+  {
+    id: "ufo-bbq-chicken",
+    name: "BBQ Chicken UFO",
+    category: "ufo",
+    isVeg: false,
+    isSignature: true,
+    description: "Grilled chicken in BBQ sauce, onions & peppers press-sealed in UFO bun",
+    price: 599,
+    image: "/assets/708754354_17892310332525648_8596195610652234997_n.jpg",
+    badge: "UFO Sealed"
+  },
+  {
+    id: "ufo-juicy-lucy-potato",
+    name: "Juicy Lucy (Potato) UFO",
+    category: "ufo",
+    isVeg: true,
+    isSignature: false,
+    description: "Molten cheese-center potato patty sealed inside press-toasted UFO saucer",
+    price: 529,
+    image: "/assets/708877450_17892310341525648_1301759277739848721_n.jpg"
+  },
+  {
+    id: "ufo-juicy-lucy-chicken",
+    name: "Juicy Lucy (Chicken) UFO",
+    category: "ufo",
+    isVeg: false,
+    isSignature: false,
+    description: "Chicken patty with molten cheese center in press-sealed saucer",
+    price: 599,
+    image: "/assets/708468998_17892310314525648_8171975173938103261_n.jpg"
+  },
+  {
+    id: "ufo-mumbai",
+    name: "Mumbai UFO",
+    category: "ufo",
+    isVeg: true,
+    isSignature: true,
+    description: "Batata vada, cheddar, lasun chutney, fried chillies sealed in crispy UFO bun",
+    price: 469,
+    image: "/assets/THECHA BURGER.png",
+    badge: "Local Fusion"
+  },
+
+  // CROISSANT TAKEOVER
+  {
+    id: "croissant-chicken",
+    name: "Chicken Croissant Takeover",
+    category: "croissant",
+    isVeg: false,
+    isSignature: false,
+    description: "Smashed chicken patty, caramelised onion, melted cheddar, slaw in butter croissant",
+    price: 389,
+    image: "/assets/Croissant Takeover .png"
+  },
+  {
+    id: "croissant-lamb",
+    name: "Lamb Croissant Takeover",
+    category: "croissant",
+    isVeg: false,
+    isSignature: true,
+    description: "Smashed lamb patty, caramelised onion, melted cheddar, slaw in butter croissant",
+    price: 489,
+    image: "/assets/708959483_17892310293525648_1117848264840887243_n.jpg",
+    badge: "Premium Lamb"
+  },
+  {
+    id: "croissant-veg",
+    name: "Veg (Cottage Cheese Crumble) Croissant",
+    category: "croissant",
+    isVeg: true,
+    isSignature: false,
+    description: "Cottage cheese crumble, cheese, onion, slaw in butter croissant",
+    price: 379,
+    image: "/assets/Croissant Takeover .png"
+  },
+
+  // PULL ME UP BURGERS
+  {
+    id: "pmu-chicken",
+    name: "Pull Me Up (Chicken)",
+    category: "pull-me-up",
+    isVeg: false,
+    isSignature: true,
+    description: "Brioche bun, grilled chicken patty, lettuce, 3-cheese fondue cascade",
+    price: 429,
+    image: "/assets/PMU.png",
+    badge: "Molten Cheese"
+  },
+  {
+    id: "pmu-cottage-cheese",
+    name: "Pull Me Up (Cottage Cheese)",
+    category: "pull-me-up",
+    isVeg: true,
+    isSignature: true,
+    description: "Brioche bun, grilled cottage cheese patty, 3-cheese fondue cascade",
+    price: 379,
+    image: "/assets/Pull me up.png",
+    badge: "Veg Fondue"
+  },
+
+  // AVOCADO BURGER
+  {
+    id: "avocado-veggie",
+    name: "Veggie Avocado Burger",
+    category: "avocado",
+    isVeg: true,
+    isSignature: false,
+    description: "Veggie patty, avocado mash, hot salsa, cheese, tortilla chips",
+    price: 399,
+    image: "/assets/Veggie Avacado.png"
+  },
+
+  // SLIDER BUCKETS
+  {
+    id: "slider-bucket-3",
+    name: "3 Sliders Bucket",
+    category: "sliders",
+    isVeg: false,
+    isSignature: false,
+    description: "Trio of mini smash sliders served with signature dipping sauces (Veg ₹279 / Chicken ₹319 / Lamb ₹359)",
+    price: 319,
+    image: "/assets/SB.png",
+    badge: "Shareable"
+  },
+  {
+    id: "slider-bucket-6",
+    name: "6 Sliders Party Bucket",
+    category: "sliders",
+    isVeg: false,
+    isSignature: false,
+    description: "6 mini smash sliders served with signature house sauces (Veg ₹499 / Chicken ₹549 / Lamb ₹599)",
+    price: 549,
+    image: "/assets/SB.png"
+  },
+
+  // SIDES & SALADS
+  {
+    id: "fries-salted-periperi",
+    name: "Fries (Salted / Peri Peri)",
     category: "sides",
     isVeg: true,
     isSignature: false,
-    description: "Spicy peri peri tossed golden fries",
-    price: 139,
-    image: "/assets/746792431_17900012562525648_4768543672464853036_n.jpg",
-    badge: "Spicy"
+    description: "Served with Em's Special Sauce",
+    price: 149,
+    image: "/assets/Salted fries.png"
   },
   {
     id: "truffle-fries",
     name: "Truffle Fries",
     category: "sides",
     isVeg: true,
-    isSignature: false,
-    description: "Gourmet fries tossed in truffle oil and parmesan",
-    price: 189,
-    image: "/assets/747675000_17900012559525648_7393915210769207955_n.jpg"
+    isSignature: true,
+    description: "Truffle oil, parmesan, herbs on crispy golden fries",
+    price: 249,
+    image: "/assets/Truffle Fries.png",
+    badge: "Truffle"
   },
   {
-    id: "chicken-tenders",
-    name: "Chicken Tenders",
+    id: "destroyed-fries",
+    name: "Destroyed Fries",
+    category: "sides",
+    isVeg: false,
+    isSignature: true,
+    description: "Loaded fries with cheese, sauce, fried chicken / mozzarella",
+    price: 299,
+    image: "/assets/Destroyed Fries.png",
+    badge: "Loaded"
+  },
+  {
+    id: "deep-fried-mac-cheese",
+    name: "Deep-Fried Mac & Cheese",
+    category: "sides",
+    isVeg: true,
+    isSignature: false,
+    description: "Served with sweet chilli sauce",
+    price: 249,
+    image: "/assets/Mac and Cheese.png"
+  },
+  {
+    id: "chicken-tenders-3pcs",
+    name: "Chicken Tenders (3 Pcs)",
     category: "sides",
     isVeg: false,
     isSignature: false,
-    description: "Golden tender chicken strips marinated in herbs, served with smoky honey mustard",
-    price: 199,
-    image: "/assets/747079944_17900012571525648_1744181361872464272_n.jpg",
-    badge: "Juicy"
+    description: "Crispy fried tender strips served with dip (3/6/9/12 pcs options available)",
+    price: 229,
+    image: "/assets/Chicken tenders.png"
   },
   {
-    id: "classic-cold-coffee",
-    name: "Classic Cold Coffee",
-    category: "drinks",
+    id: "ems-house-salad",
+    name: "Em's House Salad",
+    category: "sides",
     isVeg: true,
     isSignature: false,
-    description: "Dark roast espresso double shot whipped with ice-cream milk & cocoa drizzle",
-    price: 129,
-    image: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=800&q=80",
-    badge: "Chilled"
+    description: "Lettuce, diced veggies, avocado, seeds, house dressing (+Add Egg/Sausages/Cottage Cheese)",
+    price: 299,
+    image: "/assets/Veggie Avacado.png"
+  },
+
+  // COLD BEVERAGES
+  {
+    id: "strawberry-pop",
+    name: "Strawberry Pop",
+    category: "cold-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Refreshing cold fruit beverage",
+    price: 239,
+    image: "https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=800&q=80"
   },
   {
-    id: "mango-boba-shake",
-    name: "Mango Passion Boba",
-    category: "drinks",
+    id: "choco-blast",
+    name: "Choco Blast Shake",
+    category: "cold-drinks",
     isVeg: true,
     isSignature: true,
-    description: "Alphonso mango thick shake blended with passionfruit pulp and chewy brown sugar boba pearls",
-    price: 169,
+    description: "Rich chocolate thickshake topped with cocoa sprinkles",
+    price: 229,
     image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=800&q=80",
-    badge: "New"
+    badge: "Thick Shake"
   },
   {
-    id: "hibiscus-lemonade",
-    name: "Sparkling Hibiscus Lemonade",
-    category: "drinks",
+    id: "banana-slide",
+    name: "Banana Slide Shake",
+    category: "cold-drinks",
     isVeg: true,
     isSignature: false,
-    description: "Cold-brewed organic hibiscus flower tea with crushed mint, freshly squeezed lemon & sparkling soda",
-    price: 119,
-    image: "https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=800&q=80",
-    badge: "Refreshing"
+    description: "Smooth banana shake blended with ice cream",
+    price: 199,
+    image: "https://images.unsplash.com/photo-1553787499-6f9133860278?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "mango-mash",
+    name: "Mango Mash",
+    category: "cold-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Alphonso mango pulp blended iced drink",
+    price: 249,
+    image: "https://images.unsplash.com/photo-1623065422902-30a2d299bcc4?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "vanilla-storm",
+    name: "Vanilla Storm",
+    category: "cold-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Classic creamy vanilla bean shake",
+    price: 209,
+    image: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "coffee-kick",
+    name: "Coffee Kick Cold Coffee",
+    category: "cold-drinks",
+    isVeg: true,
+    isSignature: true,
+    description: "Double shot espresso whipped with cold milk & ice cream",
+    price: 219,
+    image: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=800&q=80",
+    badge: "Chilled Coffee"
+  },
+  {
+    id: "coke-sprite-diet",
+    name: "Coke / Sprite / Diet Coke",
+    category: "cold-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Chilled soft drink (330ml)",
+    price: 69,
+    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80"
+  },
+
+  // HOT BEVERAGES
+  {
+    id: "dark-chocolate",
+    name: "Dark Chocolate Hot Brew",
+    category: "hot-drinks",
+    isVeg: true,
+    isSignature: true,
+    description: "Intense, bittersweet cocoa indulgence for true chocolate lovers",
+    price: 219,
+    image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=800&q=80",
+    badge: "Hot Brew"
+  },
+  {
+    id: "milk-chocolate",
+    name: "Milk Chocolate Hot Brew",
+    category: "hot-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Classic creamy comfort with a perfect touch of sweetness",
+    price: 219,
+    image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "white-chocolate",
+    name: "White Chocolate Hot Brew",
+    category: "hot-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Silky and sweet with the buttery richness of white chocolate",
+    price: 219,
+    image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "cappuccino",
+    name: "Cappuccino",
+    category: "hot-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "A rich espresso topped with velvety steamed milk and a cloud of frothy foam",
+    price: 199,
+    image: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "latte",
+    name: "Latte",
+    category: "hot-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Smooth espresso blended with creamy steamed milk for a perfectly balanced cup",
+    price: 189,
+    image: "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "mocha",
+    name: "Mocha",
+    category: "hot-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "A decadent fusion of espresso and chocolate, crowned with creamy milk",
+    price: 229,
+    image: "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "americano",
+    name: "Americano",
+    category: "hot-drinks",
+    isVeg: true,
+    isSignature: false,
+    description: "Bold and smooth black coffee with a rich, robust flavor",
+    price: 169,
+    image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80"
   }
 ];

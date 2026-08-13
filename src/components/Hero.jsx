@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Sparkles, QrCode, ShoppingBag, Flame } from 'lucide-react';
+import { ArrowRight, Sparkles, MapPin, ShoppingBag, Flame } from 'lucide-react';
 import { InteractiveHeroFood } from './InteractiveHeroFood';
 import { BouncyButton } from './BouncyButton';
 
@@ -68,13 +68,10 @@ export function Hero() {
                 </BouncyButton>
               </Link>
 
-              <Link to="/loyalty">
+              <Link to="/contact#map">
                 <BouncyButton variant="outline" size="large">
-                  <QrCode className="w-5 h-5" />
-                  <span>Loyalty Punch Card</span>
-                  <span className="bg-accent text-dark text-xs px-2 py-0.5 rounded-full font-black">
-                    10th Free
-                  </span>
+                  <MapPin className="w-5 h-5 text-accent" />
+                  <span>Locate Em's</span>
                 </BouncyButton>
               </Link>
             </div>

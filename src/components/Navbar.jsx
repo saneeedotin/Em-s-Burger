@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingBag, User, LogOut, LayoutDashboard, Heart, Sparkles, ChevronDown } from 'lucide-react';
+import { Menu, X, ShoppingBag, User, LogOut, LayoutDashboard, Heart, Sparkles, ChevronDown, Leaf } from 'lucide-react';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
+import { useVegMode } from '../context/VegModeContext';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,10 +13,12 @@ export function Navbar() {
   const navigate = useNavigate();
 
   const { currentUser, logout } = useAuth();
+  const { isVegOnly, toggleVegMode } = useVegMode();
 
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Menu', path: '/menu' },
+    { name: 'Gallery', path: '/gallery' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
     ...(!currentUser ? [{ name: 'Loyalty Club', path: '/loyalty', badge: '10th Free' }] : []),
@@ -63,6 +66,20 @@ export function Navbar() {
 
         {/* Desktop Auth & Order Buttons */}
         <div className="hidden md:flex items-center gap-3">
+          
+          {/* Veg Mode Toggle */}
+          <button
+            onClick={toggleVegMode}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-heading font-bold text-xs transition-colors border-2 ${
+              isVegOnly 
+                ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' 
+                : 'bg-cream/10 text-cream border-cream/20 hover:bg-cream/20 hover:border-cream/30'
+            }`}
+            title="Toggle Pure Veg Mode"
+          >
+            <Leaf className={`w-3.5 h-3.5 ${isVegOnly ? 'fill-white' : ''}`} />
+            <span>Pure Veg</span>
+          </button>
           
           {/* User State */}
           {currentUser ? (
@@ -236,6 +253,19 @@ export function Navbar() {
                   <span>Log Out</span>
                 </button>
               )}
+
+              {/* Mobile Veg Mode Toggle */}
+              <button
+                onClick={toggleVegMode}
+                className={`w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-2xl font-heading font-bold text-sm transition-all shadow-sm ${
+                  isVegOnly
+                    ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                    : 'bg-cream-light text-primary hover:bg-primary/10 border border-primary/10'
+                }`}
+              >
+                <Leaf className={`w-4 h-4 ${isVegOnly ? 'fill-white' : ''}`} />
+                <span>{isVegOnly ? 'Pure Veg Mode Active' : 'Enable Pure Veg Mode'}</span>
+              </button>
 
               <div className="pt-2">
                 <a

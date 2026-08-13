@@ -2,22 +2,27 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MENU_CATEGORIES, MENU_ITEMS } from '../data/menu';
 import { MenuItemCard } from '../components/MenuItemCard';
-import { Utensils, Sparkles, Filter, Search } from 'lucide-react';
+import { PhysicalMenuLayout } from '../components/PhysicalMenuLayout';
+import { Utensils, Sparkles, Filter, Search, LayoutGrid, List, BookOpen } from 'lucide-react';
+import { useVegMode } from '../context/VegModeContext';
 
 export function Menu() {
+  const { isVegOnly } = useVegMode();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [vegFilter, setVegFilter] = useState('all'); // 'all' | 'veg' | 'nonveg'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list' | 'physical'
 
   const filteredItems = MENU_ITEMS.filter((item) => {
     // Category match
     const categoryMatch = activeCategory === 'all' || item.category === activeCategory;
     
     // Veg/NonVeg match
-    const vegMatch = 
-      vegFilter === 'all' ? true :
-      vegFilter === 'veg' ? item.isVeg === true :
-      item.isVeg === false;
+    const vegMatch = isVegOnly 
+      ? item.isVeg === true
+      : vegFilter === 'all' ? true :
+        vegFilter === 'veg' ? item.isVeg === true :
+        item.isVeg === false;
 
     // Search query match
     const searchMatch = 
@@ -79,21 +84,49 @@ export function Menu() {
               })}
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full md:w-72">
-              <Search className="w-4 h-4 text-dark/40 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search burgers, sides..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-full bg-cream border border-primary/20 text-dark text-sm font-medium focus:outline-none focus:border-primary transition-colors"
-              />
+            {/* Search Input & View Toggles */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+              <div className="relative w-full md:w-64">
+                <Search className="w-4 h-4 text-dark/40 absolute left-4 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search burgers, sides..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-full bg-cream border border-primary/20 text-dark text-sm font-medium focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              {/* View Toggles */}
+              <div className="flex bg-cream p-1 rounded-full border border-primary/20 shadow-sm shrink-0">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-full transition-colors ${viewMode === 'grid' ? 'bg-primary text-cream shadow-md' : 'text-dark/60 hover:text-dark hover:bg-primary/10'}`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-full transition-colors ${viewMode === 'list' ? 'bg-primary text-cream shadow-md' : 'text-dark/60 hover:text-dark hover:bg-primary/10'}`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('physical')}
+                  className={`p-2 rounded-full transition-colors ${viewMode === 'physical' ? 'bg-primary text-cream shadow-md' : 'text-dark/60 hover:text-dark hover:bg-primary/10'}`}
+                  title="Physical Menu"
+                >
+                  <BookOpen className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
           </div>
 
-          {/* Veg / Non-Veg Toggle Bar */}
+        {/* Veg / Non-Veg Toggle Bar (Hidden in Physical View or if Global Veg Mode is on) */}
+        {!isVegOnly && viewMode !== 'physical' && (
           <div className="pt-4 border-t border-primary/10 flex flex-wrap items-center justify-between gap-4 text-xs font-bold font-heading">
             <div className="flex items-center gap-2">
               <span className="text-dark/60 uppercase">Filter Dietary:</span>
@@ -129,19 +162,43 @@ export function Menu() {
               Showing <span className="text-primary font-black">{filteredItems.length}</span> items
             </div>
           </div>
+        )}
+        
+        {isVegOnly && viewMode !== 'physical' && (
+          <div className="pt-4 border-t border-primary/10 flex items-center justify-between gap-4 text-xs font-bold font-heading">
+             <div className="flex items-center gap-2 text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                Global Pure Veg Mode is Active
+             </div>
+             <div className="text-dark/60">
+                Showing <span className="text-primary font-black">{filteredItems.length}</span> items
+             </div>
+          </div>
+        )}
 
         </div>
 
-        {/* Menu Items Grid with Framer Motion Layout Animation */}
-        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filteredItems.map((item) => (
-              <MenuItemCard key={item.id} item={item} />
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        {/* Dynamic View Rendering */}
+        {viewMode === 'physical' ? (
+          <PhysicalMenuLayout isVegOnly={isVegOnly} />
+        ) : (
+          <motion.div 
+            layout 
+            className={`grid gap-6 ${
+              viewMode === 'grid' 
+                ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4' 
+                : 'grid-cols-1 max-w-4xl mx-auto'
+            }`}
+          >
+            <AnimatePresence>
+              {filteredItems.map((item) => (
+                <MenuItemCard key={item.id} item={item} viewMode={viewMode} />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
-        {filteredItems.length === 0 && (
+        {filteredItems.length === 0 && viewMode !== 'physical' && (
           <div className="text-center py-16 bg-cream-light rounded-4xl border-2 border-dashed border-primary/20 space-y-3">
             <h3 className="font-heading font-bold text-2xl text-dark">No dishes found</h3>
             <p className="text-dark/60 text-sm">
