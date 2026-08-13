@@ -1,20 +1,54 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../config/supabase';
 import { Search, Hash, User, Mail, Award, ShoppingBag, Coffee, Star, Sparkles, Flame, Utensils } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function AdminDashboard() {
-  const { users, adminUpdateUserLoyalty } = useAuth();
+  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const adminUpdateUserLoyalty = async (userId, newStamps) => {
+    try {
+      const { error } = await supabase.from('profiles').update({ stamps: newStamps }).eq('id', userId);
+      if (error) throw error;
+      
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, stamps: newStamps } : u));
+    } catch (err) {
+      console.error('Failed to update stamps', err);
+      alert('Failed to update stamps');
+    }
+  };
 
   const filteredUsers = users.filter(user => {
     const term = searchTerm.toLowerCase();
+    const name = user.name || user.email.split('@')[0];
     return (
-      user.name.toLowerCase().includes(term) ||
+      name.toLowerCase().includes(term) ||
       user.email.toLowerCase().includes(term) ||
-      (user.hashCode && user.hashCode.includes(term))
+      (user.hash_id && user.hash_id.toLowerCase().includes(term))
     );
   });
+
+  if (loading) {
+    return <div className="pt-20 text-center text-dark/50">Loading customer database...</div>;
+  }
 
   return (
     <div className="relative max-w-4xl mx-auto space-y-8 pt-10 px-4 z-10">
@@ -28,6 +62,7 @@ export function AdminDashboard() {
         <Sparkles className="absolute top-[40%] left-[30%] w-16 h-16 rotate-45" />
         <Hash className="absolute top-[50%] right-[25%] w-20 h-20 -rotate-6" />
       </div>
+      
       <div className="text-center space-y-4">
         <h2 className="text-4xl md:text-5xl font-heading font-black text-dark tracking-tight">Customer Search</h2>
         <p className="text-dark/60 text-lg max-w-xl mx-auto">
@@ -62,71 +97,59 @@ export function AdminDashboard() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {filteredUsers.map(user => (
-                <div key={user.id} className="bg-white rounded-3xl p-6 border border-dark/5 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-heading font-black text-2xl">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-xl text-dark">{user.name}</h4>
-                        {user.hashCode && (
-                          <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-lg font-mono text-sm font-bold">
-                            <Hash size={12} />
-                            {user.hashCode}
-                          </span>
-                        )}
+              {filteredUsers.map(user => {
+                const name = user.name || user.email.split('@')[0];
+                return (
+                  <div key={user.id} className="bg-white rounded-3xl p-6 border border-dark/5 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-heading font-black text-2xl">
+                        {name.charAt(0).toUpperCase()}
                       </div>
-                      <p className="text-dark/60 flex items-center gap-1.5 text-sm mt-1">
-                        <Mail size={14} />
-                        {user.email}
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-xl text-dark">{name}</h4>
+                          {user.hash_id && (
+                            <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-lg font-mono text-sm font-bold">
+                              <Hash size={12} />
+                              {user.hash_id}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-dark/60 flex items-center gap-1.5 text-sm mt-1">
+                          <Mail size={14} />
+                          {user.email}
+                        </p>
+                      </div>
                     </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className="flex flex-col items-center">
+                        <span className="text-dark/50 text-[10px] font-bold uppercase tracking-wider mb-2">Total Stamps</span>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold text-dark bg-cream px-3 py-1.5 rounded-lg text-lg border border-dark/5">{user.stamps || 0}/10</span>
+                          <button 
+                            onClick={() => adminUpdateUserLoyalty(user.id, (user.stamps || 0) + 1)}
+                            disabled={(user.stamps || 0) >= 10}
+                            className="w-10 h-10 rounded-xl bg-accent text-white flex items-center justify-center hover:bg-accent-hover transition-colors disabled:opacity-50 shadow-sm"
+                            title="Add Stamp"
+                          >
+                            <img src="/logoo.svg" alt="Burger" className="w-5 h-5 object-contain brightness-0 invert" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <Link 
+                        to="/admin/users" 
+                        className="px-5 py-2.5 bg-white border-2 border-primary/20 text-primary hover:bg-primary hover:text-white rounded-xl font-heading font-bold transition-colors h-11 flex items-center mt-5"
+                      >
+                        View User
+                      </Link>
+                    </div>
+
                   </div>
-
-                  <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-center">
-                      <span className="text-dark/50 text-[10px] font-bold uppercase tracking-wider mb-2">Burger Stamps</span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono font-bold text-dark bg-cream px-3 py-1.5 rounded-lg text-lg border border-dark/5">{user.loyaltyPoints}/9</span>
-                        <button 
-                          onClick={() => adminUpdateUserLoyalty(user.id, user.loyaltyPoints + 1, 'burger')}
-                          disabled={user.loyaltyPoints >= 9}
-                          className="w-10 h-10 rounded-xl bg-accent text-white flex items-center justify-center hover:bg-accent-hover transition-colors disabled:opacity-50 shadow-sm"
-                          title="Add Burger Stamp"
-                        >
-                          <img src="/logoo.svg" alt="Burger" className="w-5 h-5 object-contain brightness-0 invert" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                      <span className="text-dark/50 text-[10px] font-bold uppercase tracking-wider mb-2">Drink Stamps</span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono font-bold text-dark bg-cream px-3 py-1.5 rounded-lg text-lg border border-dark/5">{user.beveragePoints}/9</span>
-                        <button 
-                          onClick={() => adminUpdateUserLoyalty(user.id, user.beveragePoints + 1, 'beverage')}
-                          disabled={user.beveragePoints >= 9}
-                          className="w-10 h-10 rounded-xl bg-[#F3732A] text-white flex items-center justify-center hover:brightness-95 transition-colors disabled:opacity-50 shadow-sm"
-                          title="Add Beverage Stamp"
-                        >
-                          <Coffee size={18} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <Link 
-                      to="/admin/loyalty" 
-                      className="px-5 py-2.5 bg-white border-2 border-primary/20 text-primary hover:bg-primary hover:text-white rounded-xl font-heading font-bold transition-colors h-11 flex items-center mt-5"
-                    >
-                      Manage
-                    </Link>
-                  </div>
-
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

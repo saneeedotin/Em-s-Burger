@@ -15,7 +15,7 @@ export function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -25,13 +25,13 @@ export function Signup() {
       return;
     }
 
-    if (password.length < 4) {
-      setError('Password must be at least 4 characters for demo.');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
       triggerShake();
       return;
     }
 
-    const res = signup(name, email, password);
+    const res = await signup(name, email, password);
     if (res.success) {
       setSuccess(true);
       setTimeout(() => navigate('/dashboard', { replace: true }), 600);

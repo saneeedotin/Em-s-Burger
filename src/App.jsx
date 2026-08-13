@@ -2,6 +2,9 @@ import React, { useEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
+import { VegModeProvider } from './context/VegModeContext';
+import { CartProvider } from './context/CartContext';
+import { MenuProvider } from './context/MenuContext';
 import { RequireAuth } from './components/RequireAuth';
 import { SmoothScroll } from './components/SmoothScroll';
 import { BurgerCursor } from './components/BurgerCursor';
@@ -9,7 +12,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { LoadingScreen } from './components/LoadingScreen';
 import { PageTransition } from './components/PageTransition';
-import { VegModeProvider } from './context/VegModeContext';
+import { FloatingCart } from './components/FloatingCart';
 
 import { Home } from './pages/Home';
 import { Menu } from './pages/Menu';
@@ -20,12 +23,16 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { GalleryPage } from './pages/GalleryPage';
+import { TableQR } from './pages/TableQR';
+import { Checkout } from './pages/Checkout';
+import { WhileYouWait } from './pages/WhileYouWait';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminLoyalty } from './pages/admin/AdminLoyalty';
+import { AdminMenu } from './pages/admin/AdminMenu';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -43,55 +50,64 @@ export function App() {
 
   return (
     <AuthProvider>
-      <VegModeProvider>
-        <LoadingScreen />
-      {!isAdmin && <BurgerCursor />}
-      <SmoothScroll>
-        <ScrollToTop />
-        
-        {isAdmin ? (
-          <Routes location={location}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="loyalty" element={<AdminLoyalty />} />
-            </Route>
-          </Routes>
-        ) : (
-          <div className="flex flex-col min-h-screen bg-cream text-dark font-body">
-            <Navbar />
+      <MenuProvider>
+        <VegModeProvider>
+          <CartProvider>
+            <LoadingScreen />
+        {!isAdmin && <BurgerCursor />}
+        <SmoothScroll>
+          <ScrollToTop />
+          
+          {isAdmin ? (
+            <Routes location={location}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="loyalty" element={<AdminLoyalty />} />
+                <Route path="menu" element={<AdminMenu />} />
+              </Route>
+            </Routes>
+          ) : (
+            <div className="flex flex-col min-h-screen bg-cream text-dark font-body">
+              <Navbar />
 
-            <main className="flex-grow">
-              <AnimatePresence mode="wait">
-                <PageTransition key={location.pathname}>
-                  <Routes location={location}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/menu" element={<Menu />} />
-                    <Route path="/gallery" element={<GalleryPage />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/loyalty" element={<Loyalty />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <RequireAuth>
-                          <Dashboard />
-                        </RequireAuth>
-                      }
-                    />
-                  </Routes>
-                </PageTransition>
-              </AnimatePresence>
-            </main>
+              <main className="flex-grow">
+                <AnimatePresence mode="wait">
+                  <PageTransition key={location.pathname}>
+                    <Routes location={location}>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/menu" element={<Menu />} />
+                      <Route path="/table/:id" element={<TableQR />} />
+                      <Route path="/gallery" element={<GalleryPage />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/loyalty" element={<Loyalty />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route
+                        path="/dashboard"
+                        element={
+                          <RequireAuth>
+                            <Dashboard />
+                          </RequireAuth>
+                        }
+                      />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/while-you-wait" element={<WhileYouWait />} />
+                    </Routes>
+                  </PageTransition>
+                </AnimatePresence>
+              </main>
 
-            <Footer />
-          </div>
-        )}
-      </SmoothScroll>
-      </VegModeProvider>
+              <FloatingCart />
+              <Footer />
+            </div>
+          )}
+        </SmoothScroll>
+          </CartProvider>
+        </VegModeProvider>
+      </MenuProvider>
     </AuthProvider>
   );
 }
