@@ -28,6 +28,7 @@ export function LoadingScreen() {
         muted 
         playsInline 
         onEnded={handleVideoEnd}
+        onError={handleVideoEnd}
       >
         <source src="/ANimatedlogo.mp4" type="video/mp4" />
       </video>

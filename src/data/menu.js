@@ -217,7 +217,7 @@ export const MENU_ITEMS = [
     isSignature: true,
     description: "Brioche bun, grilled chicken patty, lettuce, 3-cheese fondue cascade",
     price: 429,
-    image: "/assets/PMU.png",
+    image: "/assets/Pull me up.png",
     badge: "Molten Cheese"
   },
   {
@@ -256,7 +256,7 @@ export const MENU_ITEMS = [
     isSignature: false,
     description: "Trio of mini smash sliders served with signature dipping sauces (Veg ₹279 / Chicken ₹319 / Lamb ₹359)",
     price: 319,
-    image: "/assets/SB.png",
+    image: "/assets/Untitled - 23 May 2026 at 20.01.19.png",
     badge: "Shareable"
   },
   {
@@ -268,7 +268,7 @@ export const MENU_ITEMS = [
     isSignature: false,
     description: "6 mini smash sliders served with signature house sauces (Veg ₹499 / Chicken ₹549 / Lamb ₹599)",
     price: 549,
-    image: "/assets/SB.png"
+    image: "/assets/Untitled - 23 May 2026 at 20.01.19.png"
   },
 
   // SIDES & SALADS

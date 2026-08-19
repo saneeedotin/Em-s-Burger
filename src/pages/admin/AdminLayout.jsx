@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Award, LogOut, Store, Search } from 'lucide-react';
+import { LayoutDashboard, Users, Award, LogOut, Store, Search, QrCode } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export function AdminLayout() {
@@ -60,6 +60,13 @@ export function AdminLayout() {
           >
             <Store size={20} />
             Menu
+          </NavLink>
+          <NavLink 
+            to="/admin/qr" 
+            className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-primary text-cream' : 'text-cream/70 hover:bg-white/5 hover:text-cream'}`}
+          >
+            <QrCode size={20} />
+            Table QR Codes
           </NavLink>
         </nav>
 
