@@ -384,20 +384,26 @@ export function Login() {
                   )}
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold font-heading uppercase tracking-wider text-dark/70">
-                      Email Address
+                    <label className="text-xs font-bold font-heading uppercase tracking-wider text-dark/70 flex items-center justify-between">
+                      <span>Registered Email</span>
+                      <span className="text-[10px] text-primary font-extrabold flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Locked
+                      </span>
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-dark/40 absolute left-4 top-1/2 -translate-y-1/2" />
                       <input
                         type="email"
-                        placeholder="your-email@example.com"
                         value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        required
-                        className="w-full pl-11 pr-4 py-3 rounded-2xl bg-cream border-2 border-primary/20 text-dark font-medium text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all"
+                        readOnly
+                        disabled
+                        className="w-full pl-11 pr-10 py-3 rounded-2xl bg-dark/5 border-2 border-dark/15 text-dark/80 font-bold text-sm cursor-not-allowed select-none outline-none"
                       />
+                      <Lock className="w-4 h-4 text-dark/40 absolute right-4 top-1/2 -translate-y-1/2" />
                     </div>
+                    <p className="text-[11px] text-dark/50 italic">
+                      Reset link will be sent to the email entered during login.
+                    </p>
                   </div>
 
                   <button
