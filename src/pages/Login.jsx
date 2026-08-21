@@ -3,8 +3,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
-import { auth } from '../config/firebase';
-import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -56,32 +54,17 @@ export function Login() {
 
   const handleGoogleLogin = async () => {
     setError('');
-    try {
-      const res = await loginWithGoogle();
-      if (res.success) {
-        setSuccess(true);
-        if (res.isAdmin) {
-          setTimeout(() => navigate('/admin', { replace: true }), 600);
-        } else {
-          setTimeout(() => navigate(from, { replace: true }), 600);
-        }
-      } else if (res.message && res.message.includes('popup-blocked')) {
-        // Popup was blocked — use redirect instead
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
+    const res = await loginWithGoogle();
+    if (res.success) {
+      setSuccess(true);
+      if (res.isAdmin) {
+        setTimeout(() => navigate('/admin', { replace: true }), 600);
       } else {
-        setError(res.message);
-        triggerShake();
+        setTimeout(() => navigate(from, { replace: true }), 600);
       }
-    } catch (err) {
-      // If anything goes wrong, try redirect as last resort
-      try {
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
-      } catch (redirectErr) {
-        setError(redirectErr.message);
-        triggerShake();
-      }
+    } else {
+      setError(res.message);
+      triggerShake();
     }
   };
 
@@ -139,6 +122,7 @@ export function Login() {
 
             {/* Google Sign In */}
             <button
+              type="button"
               onClick={handleGoogleLogin}
               className="w-full py-3.5 rounded-full bg-white text-dark font-heading font-extrabold text-sm border-2 border-dark/10 shadow-sm hover:bg-dark/5 hover:border-dark/20 transition-all flex items-center justify-center gap-3 active:scale-95"
             >

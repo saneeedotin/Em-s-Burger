@@ -127,11 +127,21 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      // Always use redirect — works on all devices, no popup-blocked issues
-      await signInWithRedirect(auth, provider);
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const result = await signInWithPopup(auth, provider);
+      if (result.user) {
+        await fetchProfile(result.user.uid, result.user.email, result.user.displayName);
+      }
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.message };
+      console.error('Google sign-in error:', error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        return { success: false, message: 'Google sign-in was closed before completing.' };
+      }
+      if (error.code === 'auth/popup-blocked') {
+        return { success: false, message: 'Popup blocked by browser. Please allow popups for this site.' };
+      }
+      return { success: false, message: error.message || 'Google sign-in failed.' };
     }
   };
 

@@ -3,8 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
-import { auth } from '../config/firebase';
-import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 
 export function Signup() {
   const [name, setName] = useState('');
@@ -53,26 +51,13 @@ export function Signup() {
 
   const handleGoogleSignup = async () => {
     setError('');
-    try {
-      const res = await loginWithGoogle();
-      if (res.success) {
-        setSuccess(true);
-        setTimeout(() => navigate('/dashboard', { replace: true }), 600);
-      } else if (res.message && res.message.includes('popup-blocked')) {
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
-      } else {
-        setError(res.message);
-        triggerShake();
-      }
-    } catch (err) {
-      try {
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
-      } catch (redirectErr) {
-        setError(redirectErr.message);
-        triggerShake();
-      }
+    const res = await loginWithGoogle();
+    if (res.success) {
+      setSuccess(true);
+      setTimeout(() => navigate('/dashboard', { replace: true }), 600);
+    } else {
+      setError(res.message);
+      triggerShake();
     }
   };
 
@@ -130,6 +115,7 @@ export function Signup() {
 
             {/* Google Sign Up */}
             <button
+              type="button"
               onClick={handleGoogleSignup}
               className="w-full py-3.5 rounded-full bg-white text-dark font-heading font-extrabold text-sm border-2 border-dark/10 shadow-sm hover:bg-dark/5 hover:border-dark/20 transition-all flex items-center justify-center gap-3 active:scale-95"
             >
