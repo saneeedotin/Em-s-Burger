@@ -12,7 +12,7 @@ export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
   const navigate = useNavigate();
   
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
   const [addedAnimation, setAddedAnimation] = useState(false);
 
   const isFavourited = currentUser?.favourites?.includes(id);
@@ -29,9 +29,10 @@ export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
+    if (quantity === 0) return; // Prevent adding 0 items
     addToCart(item, quantity);
     setAddedAnimation(true);
-    setQuantity(1); // Reset after adding
+    setQuantity(0); // Reset after adding
     setTimeout(() => setAddedAnimation(false), 1000);
   };
 
@@ -42,7 +43,7 @@ export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
 
   const decrementQty = (e) => {
     e.stopPropagation();
-    setQuantity(q => Math.max(1, q - 1));
+    setQuantity(q => Math.max(0, q - 1));
   };
 
   return (

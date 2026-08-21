@@ -4,7 +4,8 @@ import gsap from 'gsap';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../config/supabase';
+import { db } from '../config/firebase';
+import { collection, getDocs, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 
 export function About() {
   const storyContainerRef = useRef(null);
@@ -39,15 +40,13 @@ export function About() {
 
   useEffect(() => {
     const fetchReviews = async () => {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching reviews:', error);
-      } else if (data) {
+      try {
+        const q = query(collection(db, 'reviews'), orderBy('created_at', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setReviews(data.map(applyRandomStyle));
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
       }
     };
     fetchReviews();
@@ -122,21 +121,25 @@ export function About() {
       text: newReviewText,
     };
 
-    const { data, error } = await supabase
-      .from('reviews')
-      .insert([newReview])
-      .select();
-
-    if (error) {
-      console.error('Error submitting review:', error);
-      alert('Failed to post review. Please try again.');
-    } else if (data) {
-      // Prepend so it shows up first
-      setReviews([applyRandomStyle(data[0]), ...reviews]);
+    try {
+      const reviewToInsert = {
+        ...newReview,
+        created_at: serverTimestamp()
+      };
+      const docRef = await addDoc(collection(db, 'reviews'), reviewToInsert);
+      
+      // We don't have the exact server timestamp back immediately, but we can optimistically add it
+      const insertedReview = { ...reviewToInsert, id: docRef.id, created_at: new Date().toISOString() };
+      
+      setReviews([applyRandomStyle(insertedReview), ...reviews]);
       setNewReviewText('');
       setShowReviewModal(false);
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to post review. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   useGSAP(

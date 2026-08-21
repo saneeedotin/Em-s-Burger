@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useMenu } from '../../context/MenuContext';
 import { Plus, Edit2, Trash2, Image as ImageIcon, X, Search, Check, Save } from 'lucide-react';
-import { supabase } from '../../config/supabase';
+import { storage } from '../../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export function AdminMenu() {
   const { items, categories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory } = useMenu();
@@ -62,23 +63,17 @@ export function AdminMenu() {
       setIsUploading(true);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const storageRef = ref(storage, `menu-images/${fileName}`);
 
-      const { data, error } = await supabase.storage
-        .from('menu-images')
-        .upload(filePath, file);
-
-      if (error) throw error;
-
+      await uploadBytes(storageRef, file);
+      
       // Get public URL
-      const { data: publicURLData } = supabase.storage
-        .from('menu-images')
-        .getPublicUrl(filePath);
+      const publicURL = await getDownloadURL(storageRef);
 
-      setFormData(prev => ({ ...prev, image: publicURLData.publicUrl }));
+      setFormData(prev => ({ ...prev, image: publicURL }));
     } catch (error) {
       console.error('Error uploading image:', error.message);
-      alert('Error uploading image. Make sure your Supabase Storage bucket "menu-images" is configured and public.');
+      alert('Error uploading image. Make sure Firebase Storage is configured and rules allow uploads.');
     } finally {
       setIsUploading(false);
     }

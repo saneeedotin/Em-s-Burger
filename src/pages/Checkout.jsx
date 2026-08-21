@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, MapPin, Receipt, CheckCircle2, ChevronRight, User, Utensils } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../config/supabase';
+import { db } from '../config/firebase';
+import { collection, addDoc, doc, onSnapshot } from 'firebase/firestore';
 
 export function Checkout() {
   const navigate = useNavigate();
@@ -45,20 +46,15 @@ export function Checkout() {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .insert([{
-          user_id: currentUser.id,
-          total_amount: total,
-          status: 'pending',
-          items: cart
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
+      const docRef = await addDoc(collection(db, 'orders'), {
+        user_id: currentUser.id,
+        total_amount: total,
+        status: 'pending',
+        items: cart,
+        created_at: new Date().toISOString()
+      });
       
-      setPlacedOrderId(data.id);
+      setPlacedOrderId(docRef.id);
       setOrderComplete(true);
 
       // Wait for success animation then navigate (only if table order, reception waits for validation)
@@ -81,26 +77,20 @@ export function Checkout() {
   useEffect(() => {
     if (orderComplete && orderType === 'reception' && placedOrderId) {
       // Listen for status changes on the placed order
-      const channel = supabase
-        .channel(`public:orders:${placedOrderId}`)
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${placedOrderId}` },
-          (payload) => {
-            if (payload.new.status !== 'pending') {
-              setIsValidated(true);
-              setTimeout(() => {
-                clearCart();
-                navigate('/while-you-wait');
-              }, 3000);
-            }
+      const unsubscribe = onSnapshot(doc(db, 'orders', placedOrderId), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          if (data.status !== 'pending') {
+            setIsValidated(true);
+            setTimeout(() => {
+              clearCart();
+              navigate('/while-you-wait');
+            }, 3000);
           }
-        )
-        .subscribe();
+        }
+      });
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return () => unsubscribe();
     }
   }, [orderComplete, orderType, placedOrderId, navigate, clearCart]);
 

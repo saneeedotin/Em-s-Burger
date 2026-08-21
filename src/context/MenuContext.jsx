@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../config/supabase';
+import { db } from '../config/firebase';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { MENU_CATEGORIES, MENU_ITEMS } from '../data/menu';
 
 const MenuContext = createContext(null);
@@ -16,17 +17,15 @@ export function MenuProvider({ children }) {
   const fetchMenuData = async () => {
     setLoading(true);
     try {
-      const [catRes, itemsRes] = await Promise.all([
-        supabase.from('menu_categories').select('*'),
-        supabase.from('menu_items').select('*')
-      ]);
+      const catSnapshot = await getDocs(collection(db, 'menu_categories'));
+      const itemsSnapshot = await getDocs(collection(db, 'menu_items'));
+      
+      const fetchedCats = catSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const fetchedItems = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      if (catRes.error) throw catRes.error;
-      if (itemsRes.error) throw itemsRes.error;
-
-      if (catRes.data && catRes.data.length > 0 && itemsRes.data && itemsRes.data.length > 0) {
-        setCategories(catRes.data);
-        setItems(itemsRes.data);
+      if (fetchedCats.length > 0 && fetchedItems.length > 0) {
+        setCategories(fetchedCats);
+        setItems(fetchedItems);
       } else {
         // Fallback to local data if database is empty or not yet configured
         setCategories(MENU_CATEGORIES);
@@ -34,7 +33,7 @@ export function MenuProvider({ children }) {
       }
     } catch (error) {
       console.error('Error fetching menu data:', error);
-      // Fallback to local data on error (e.g. invalid anon key, unconfigured DB)
+      // Fallback to local data on error
       setCategories(MENU_CATEGORIES);
       setItems(MENU_ITEMS);
     } finally {
@@ -45,9 +44,15 @@ export function MenuProvider({ children }) {
   // CRUD for items
   const addItem = async (item) => {
     try {
-      const { data, error } = await supabase.from('menu_items').insert([item]).select();
-      if (error) throw error;
-      if (data) setItems((prev) => [...prev, data[0]]);
+      // Use the id provided if available, otherwise let Firestore generate one
+      let docRef;
+      if (item.id) {
+        docRef = doc(db, 'menu_items', item.id);
+        await setDoc(docRef, item);
+      } else {
+        docRef = await addDoc(collection(db, 'menu_items'), item);
+      }
+      setItems((prev) => [...prev, { ...item, id: docRef.id || item.id }]);
     } catch (error) {
       console.error('Error adding item:', error);
       alert('Failed to add item: ' + error.message);
@@ -56,9 +61,9 @@ export function MenuProvider({ children }) {
 
   const updateItem = async (id, updatedItem) => {
     try {
-      const { data, error } = await supabase.from('menu_items').update(updatedItem).eq('id', id).select();
-      if (error) throw error;
-      if (data) setItems((prev) => prev.map((item) => (item.id === id ? data[0] : item)));
+      const itemRef = doc(db, 'menu_items', id);
+      await updateDoc(itemRef, updatedItem);
+      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...updatedItem } : item)));
     } catch (error) {
       console.error('Error updating item:', error);
       alert('Failed to update item: ' + error.message);
@@ -67,8 +72,7 @@ export function MenuProvider({ children }) {
 
   const deleteItem = async (id) => {
     try {
-      const { error } = await supabase.from('menu_items').delete().eq('id', id);
-      if (error) throw error;
+      await deleteDoc(doc(db, 'menu_items', id));
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -79,9 +83,14 @@ export function MenuProvider({ children }) {
   // CRUD for categories
   const addCategory = async (category) => {
     try {
-      const { data, error } = await supabase.from('menu_categories').insert([category]).select();
-      if (error) throw error;
-      if (data) setCategories((prev) => [...prev, data[0]]);
+      let docRef;
+      if (category.id) {
+        docRef = doc(db, 'menu_categories', category.id);
+        await setDoc(docRef, category);
+      } else {
+        docRef = await addDoc(collection(db, 'menu_categories'), category);
+      }
+      setCategories((prev) => [...prev, { ...category, id: docRef.id || category.id }]);
     } catch (error) {
       console.error('Error adding category:', error);
       alert('Failed to add category: ' + error.message);
@@ -90,9 +99,9 @@ export function MenuProvider({ children }) {
 
   const updateCategory = async (id, updatedCategory) => {
     try {
-      const { data, error } = await supabase.from('menu_categories').update(updatedCategory).eq('id', id).select();
-      if (error) throw error;
-      if (data) setCategories((prev) => prev.map((cat) => (cat.id === id ? data[0] : cat)));
+      const catRef = doc(db, 'menu_categories', id);
+      await updateDoc(catRef, updatedCategory);
+      setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, ...updatedCategory } : cat)));
     } catch (error) {
       console.error('Error updating category:', error);
       alert('Failed to update category: ' + error.message);
@@ -101,8 +110,7 @@ export function MenuProvider({ children }) {
 
   const deleteCategory = async (id) => {
     try {
-      const { error } = await supabase.from('menu_categories').delete().eq('id', id);
-      if (error) throw error;
+      await deleteDoc(doc(db, 'menu_categories', id));
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
     } catch (error) {
       console.error('Error deleting category:', error);

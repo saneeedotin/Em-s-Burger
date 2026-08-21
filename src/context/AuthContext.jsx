@@ -1,5 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../config/supabase';
+import { auth, db } from '../config/firebase';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  signInWithRedirect, 
+  getRedirectResult, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, runTransaction } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -10,46 +21,79 @@ const ADMIN_CREDENTIALS = {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const generateNextUserId = async () => {
+    let numericId = 1000;
+    try {
+      await runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, 'metadata', 'user_counter');
+        const counterDoc = await transaction.get(counterRef);
+        if (!counterDoc.exists()) {
+          numericId = 1001;
+          transaction.set(counterRef, { count: 1001 });
+        } else {
+          numericId = counterDoc.data().count + 1;
+          transaction.update(counterRef, { count: numericId });
+        }
+      });
+    } catch (e) {
+      console.error('Failed to generate numeric ID:', e);
+      numericId = Math.floor(100000 + Math.random() * 900000);
+    }
+    return numericId;
+  };
+
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
+    // Handle redirect result from Google sign-in (if popup was blocked)
+    getRedirectResult(auth).catch(console.error);
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        fetchProfile(session.user.id);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await fetchProfile(user.uid, user.email, user.displayName);
       } else {
         setCurrentUser(null);
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = async (userId, email, displayName) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const userDocRef = doc(db, 'profiles', userId);
+      const userDoc = await getDoc(userDocRef);
 
-      if (error) throw error;
-      setCurrentUser(data);
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (!data.numeric_id && !data.hash_id) {
+          // Retroactively generate an ID for older test accounts
+          const numericId = await generateNextUserId();
+          await setDoc(userDocRef, { numeric_id: numericId }, { merge: true });
+          data.numeric_id = numericId;
+        }
+        setCurrentUser({ id: userId, ...data });
+      } else {
+        // Fallback: If profile doesn't exist (e.g. they just signed in with Google), create it
+        const numericId = await generateNextUserId();
+
+        const newProfile = {
+          email: email,
+          name: displayName || email.split('@')[0],
+          numeric_id: numericId,
+          role: 'user',
+          stamps: 1, // Start with 1 welcome stamp!
+          favourites: []
+        };
+        await setDoc(userDocRef, newProfile);
+        setCurrentUser({ id: userId, ...newProfile });
+      }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching/creating profile:', error);
+      // Even if Firestore fails, set user so they aren't completely blocked
+      setCurrentUser({ id: userId, email, role: 'user', name: displayName || email.split('@')[0] });
     } finally {
       setLoading(false);
     }
@@ -69,10 +113,23 @@ export function AuthProvider({ children }) {
         return { success: true, isAdmin: false };
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      
+      await signInWithEmailAndPassword(auth, email, password);
       return { success: true, isAdmin: false };
+    } catch (error) {
+      let message = error.message;
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        message = 'Invalid email or password.';
+      }
+      return { success: false, message };
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      // Always use redirect — works on all devices, no popup-blocked issues
+      await signInWithRedirect(auth, provider);
+      return { success: true };
     } catch (error) {
       return { success: false, message: error.message };
     }
@@ -80,50 +137,60 @@ export function AuthProvider({ children }) {
 
   const signup = async (name, email, password) => {
     try {
-      // 1. Sign up user in Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
+      // 1. Sign up user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. Generate sequential Numeric ID
+      const numericId = await generateNextUserId();
+
+      // 3. Create profile in Firestore
+      await setDoc(doc(db, 'profiles', user.uid), {
+        email: email,
+        name: name,
+        numeric_id: numericId,
+        role: 'user',
+        stamps: 1, // Start with 1 welcome stamp!
+        favourites: []
       });
-      if (authError) throw authError;
-
-      if (authData.user) {
-        // 2. Generate Hash ID
-        const hashId = '#' + Math.floor(1000 + Math.random() * 9000).toString();
-
-        // 3. Create profile in public.profiles
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: authData.user.id,
-              email: email,
-              hash_id: hashId,
-              role: 'user',
-              stamps: 1 // Start with 1 welcome stamp!
-            }
-          ]);
-        
-        if (profileError) throw profileError;
-      }
+      
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.message };
+      let message = error.message;
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email is already in use. Please log in.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password must be at least 6 characters.';
+      }
+      return { success: false, message };
     }
   };
 
   const logout = async () => {
-    if (currentUser?.role === 'admin') {
+    if (currentUser?.role === 'admin' || currentUser?.id === 'demo-user') {
       setCurrentUser(null);
     } else {
-      await supabase.auth.signOut();
+      await signOut(auth);
     }
   };
 
-  // Profile update functions - these should call Supabase in a real app
   const toggleFavourite = async (itemId) => {
-    // Requires a favourites table or array in profiles. (Placeholder for now)
-    return false;
+    if (!currentUser || currentUser.id === 'admin' || currentUser.id === 'demo-user') return;
+    
+    try {
+      const currentFavs = currentUser.favourites || [];
+      const newFavs = currentFavs.includes(itemId)
+        ? currentFavs.filter(id => id !== itemId)
+        : [...currentFavs, itemId];
+
+      // Optimistic update
+      setCurrentUser({ ...currentUser, favourites: newFavs });
+
+      // Update in Firestore
+      await setDoc(doc(db, 'profiles', currentUser.id), { favourites: newFavs }, { merge: true });
+    } catch (error) {
+      console.error("Error toggling favourite:", error);
+    }
   };
 
   const isDemoAccount = currentUser?.email === 'demo@emsburgers.com';
@@ -134,6 +201,7 @@ export function AuthProvider({ children }) {
         currentUser,
         loading,
         login,
+        loginWithGoogle,
         signup,
         logout,
         toggleFavourite,
@@ -152,4 +220,3 @@ export function useAuth() {
   }
   return context;
 }
-

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../config/supabase';
+import { db } from '../../config/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { User, ShoppingBag, Award, Heart } from 'lucide-react';
 
 export function AdminUsers() {
@@ -16,24 +17,26 @@ export function AdminUsers() {
       // For this migration, we will fetch profiles and then a summary of orders if possible,
       // but to keep it simple we'll just fetch profiles and fetch all orders to aggregate locally.
       
-      const [profilesRes, ordersRes] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('orders').select('user_id, id')
-      ]);
+      const profilesSnapshot = await getDocs(query(collection(db, 'profiles'), orderBy('created_at', 'desc')));
+      const ordersSnapshot = await getDocs(collection(db, 'orders'));
 
-      if (profilesRes.error) throw profilesRes.error;
-      if (ordersRes.error) throw ordersRes.error;
+      const profilesData = profilesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const ordersData = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // Aggregate orders by user
-      const orderCounts = (ordersRes.data || []).reduce((acc, order) => {
-        acc[order.user_id] = (acc[order.user_id] || 0) + 1;
+      const orderCounts = ordersData.reduce((acc, order) => {
+        if (order.user_id) {
+          acc[order.user_id] = (acc[order.user_id] || 0) + 1;
+        }
         return acc;
       }, {});
 
-      const formattedUsers = (profilesRes.data || []).map(profile => ({
+      const formattedUsers = profilesData.map(profile => ({
         id: profile.id,
         name: profile.name || profile.email.split('@')[0],
         email: profile.email,
+        numeric_id: profile.numeric_id,
+        hash_id: profile.hash_id,
         stamps: profile.stamps || 0,
         orderCount: orderCounts[profile.id] || 0,
         favourites: [] // Mock for now until a real favourites system is built
@@ -85,7 +88,14 @@ export function AdminUsers() {
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium text-dark">{user.name}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-dark">{user.name}</div>
+                          {(user.numeric_id || user.hash_id) && (
+                            <span className="font-mono bg-dark/5 px-1.5 py-0.5 rounded text-[10px] text-dark/70 font-bold tracking-wider">
+                              #{user.numeric_id || user.hash_id?.replace('#', '')}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-dark/60">{user.email}</div>
                       </div>
                     </div>

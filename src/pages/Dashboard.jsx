@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../config/supabase';
+import { db } from '../config/firebase';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { DashboardTabs } from '../components/DashboardTabs';
 import { CardFace } from '../components/LoyaltyPunchCard';
 import { 
@@ -37,14 +38,14 @@ export function Dashboard() {
 
   const fetchUserOrders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setOrders(data || []);
+      const q = query(
+        collection(db, 'orders'),
+        where('user_id', '==', currentUser.id),
+        orderBy('created_at', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const ordersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setOrders(ordersData);
     } catch (err) {
       console.error('Failed to load orders', err);
     } finally {
@@ -87,12 +88,10 @@ export function Dashboard() {
                 <h1 className="font-heading font-black text-3xl sm:text-5xl tracking-tight text-cream">
                   WELCOME BACK, {currentUser?.name?.toUpperCase() || 'FOODIE'}!
                 </h1>
-                {currentUser?.hash_id && (
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-dark text-accent border-2 border-accent/20 shadow-inner w-fit mt-2 sm:mt-0">
                     <span className="text-sm font-bold text-cream/70 uppercase tracking-widest">ID:</span>
-                    <span className="font-mono font-black text-3xl sm:text-4xl">{currentUser.hash_id}</span>
+                    <span className="font-mono font-black text-3xl sm:text-4xl">#{currentUser?.numeric_id || currentUser?.hash_id?.replace('#', '') || 'MISSING'}</span>
                   </div>
-                )}
               </div>
               
               <p className="text-cream/90 text-sm sm:text-base font-medium max-w-xl">

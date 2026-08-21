@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../config/supabase';
+import { db } from '../../config/firebase';
+import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { Search, Plus, Minus, Coffee } from 'lucide-react';
 
 export function AdminLoyalty() {
@@ -13,9 +14,10 @@ export function AdminLoyalty() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      setUsers(data || []);
+      const q = query(collection(db, 'profiles'), orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const profilesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUsers(profilesData);
     } catch (err) {
       console.error('Error fetching users:', err);
     } finally {
@@ -25,8 +27,8 @@ export function AdminLoyalty() {
 
   const adminUpdateUserLoyalty = async (userId, newStamps) => {
     try {
-      const { error } = await supabase.from('profiles').update({ stamps: newStamps }).eq('id', userId);
-      if (error) throw error;
+      const userRef = doc(db, 'profiles', userId);
+      await updateDoc(userRef, { stamps: newStamps });
       
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, stamps: newStamps } : u));
     } catch (err) {
@@ -37,10 +39,10 @@ export function AdminLoyalty() {
 
   const filteredUsers = users.filter(user => {
     const term = searchTerm.toLowerCase();
-    const name = user.name || user.email.split('@')[0];
     return (
-      name.toLowerCase().includes(term) ||
-      user.email.toLowerCase().includes(term) ||
+      (user.name && user.name.toLowerCase().includes(term)) ||
+      (user.email && user.email.toLowerCase().includes(term)) ||
+      (user.numeric_id && user.numeric_id.toString().includes(term)) ||
       (user.hash_id && user.hash_id.toLowerCase().includes(term))
     );
   });
@@ -78,7 +80,14 @@ export function AdminLoyalty() {
             <div key={user.id} className="bg-white rounded-3xl p-6 border border-dark/5 shadow-sm flex flex-col gap-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-bold text-lg text-dark">{name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-lg text-dark">{name}</h3>
+                    {(user.numeric_id || user.hash_id) && (
+                      <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-lg font-mono text-xs font-bold">
+                        #{user.numeric_id || user.hash_id?.replace('#', '')}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-dark/50">{user.email}</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-cream flex items-center justify-center text-primary font-bold font-heading text-xl">

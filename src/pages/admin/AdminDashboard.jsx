@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../config/supabase';
+import { db } from '../../config/firebase';
+import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { Search, Hash, User, Mail, Award, ShoppingBag, Coffee, Star, Sparkles, Flame, Utensils } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -14,9 +15,10 @@ export function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      setUsers(data || []);
+      const q = query(collection(db, 'profiles'), orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const profilesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUsers(profilesData);
     } catch (err) {
       console.error('Error fetching users:', err);
     } finally {
@@ -26,8 +28,8 @@ export function AdminDashboard() {
 
   const adminUpdateUserLoyalty = async (userId, newStamps) => {
     try {
-      const { error } = await supabase.from('profiles').update({ stamps: newStamps }).eq('id', userId);
-      if (error) throw error;
+      const userRef = doc(db, 'profiles', userId);
+      await updateDoc(userRef, { stamps: newStamps });
       
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, stamps: newStamps } : u));
     } catch (err) {
@@ -38,10 +40,10 @@ export function AdminDashboard() {
 
   const filteredUsers = users.filter(user => {
     const term = searchTerm.toLowerCase();
-    const name = user.name || user.email.split('@')[0];
     return (
-      name.toLowerCase().includes(term) ||
-      user.email.toLowerCase().includes(term) ||
+      (user.name && user.name.toLowerCase().includes(term)) ||
+      (user.email && user.email.toLowerCase().includes(term)) ||
+      (user.numeric_id && user.numeric_id.toString().includes(term)) ||
       (user.hash_id && user.hash_id.toLowerCase().includes(term))
     );
   });
@@ -109,10 +111,10 @@ export function AdminDashboard() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold text-xl text-dark">{name}</h4>
-                          {user.hash_id && (
+                          {(user.numeric_id || user.hash_id) && (
                             <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-lg font-mono text-sm font-bold">
                               <Hash size={12} />
-                              {user.hash_id}
+                              #{user.numeric_id || user.hash_id?.replace('#', '')}
                             </span>
                           )}
                         </div>

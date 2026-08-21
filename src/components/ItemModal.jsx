@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 
 export function ItemModal({ item, isOpen, onClose }) {
   const { addToCart } = useCart();
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
   const [addedAnimation, setAddedAnimation] = useState(false);
 
   // In a real app, addons would come from the database per category or item
@@ -29,6 +29,7 @@ export function ItemModal({ item, isOpen, onClose }) {
   };
 
   const handleAddToCart = () => {
+    if (quantity === 0) return; // Prevent adding 0 items
     addToCart(item, quantity, selectedAddons);
     setAddedAnimation(true);
     setTimeout(() => {
@@ -36,7 +37,7 @@ export function ItemModal({ item, isOpen, onClose }) {
       onClose();
       // Reset state for next open
       setTimeout(() => {
-        setQuantity(1);
+        setQuantity(0);
         setSelectedAddons([]);
       }, 300);
     }, 800);
@@ -156,7 +157,7 @@ export function ItemModal({ item, isOpen, onClose }) {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center bg-cream rounded-full border border-dark/10 p-1">
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      onClick={() => setQuantity(Math.max(0, quantity - 1))}
                       className="w-10 h-10 flex items-center justify-center text-dark/70 hover:bg-dark/5 rounded-full transition-colors"
                     >
                       <Minus className="w-4 h-4" />

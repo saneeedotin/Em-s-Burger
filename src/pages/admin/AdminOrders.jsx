@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../config/supabase';
+import { db } from '../../config/firebase';
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { Clock, ChefHat, CheckCircle2, Truck } from 'lucide-react';
 
 export function AdminOrders() {
@@ -7,41 +8,37 @@ export function AdminOrders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders();
-
-    const channel = supabase
-      .channel('public:orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
-        fetchOrders();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchOrders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          user:profiles (
-            name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setOrders(data || []);
-    } catch (error) {
+    const q = query(collection(db, 'orders'), orderBy('created_at', 'desc'));
+    
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      try {
+        const ordersData = [];
+        for (const document of snapshot.docs) {
+          const order = { id: document.id, ...document.data() };
+          
+          // Fetch user profile for this order
+          if (order.user_id) {
+            const userRef = doc(db, 'profiles', order.user_id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+              order.user = userSnap.data();
+            }
+          }
+          ordersData.push(order);
+        }
+        setOrders(ordersData);
+      } catch (error) {
+        console.error('Error processing orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, (error) => {
       console.error('Error fetching orders:', error);
-    } finally {
       setLoading(false);
-    }
-  };
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const statusConfig = {
     pending: { label: 'Pending', icon: Clock, color: 'bg-accent/20 text-dark border-accent/40' },
@@ -52,12 +49,9 @@ export function AdminOrders() {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-        
-      if (error) throw error;
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, { status: newStatus });
+      // Optimistic update not strictly necessary due to onSnapshot, but good for instant feedback
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
     } catch (err) {
       console.error('Failed to update status', err);
@@ -107,7 +101,7 @@ export function AdminOrders() {
                   return (
                     <tr key={order.id} className="border-b border-dark/5 hover:bg-black/[0.02] transition-colors">
                       <td className="p-4">
-                        <span className="font-mono text-sm font-semibold text-dark">{order.id.split('-')[0]}</span>
+                        <span className="font-mono text-sm font-semibold text-dark">{order.id.slice(0, 8)}</span>
                         <div className="text-xs text-dark/50 mt-1">{formatTime(order.created_at)}</div>
                       </td>
                       <td className="p-4">
