@@ -179,27 +179,6 @@ export function OtpVerificationModal({
             </div>
           </div>
 
-          {/* Quick OTP Code Badge */}
-          {debugHint && (
-            <div className="mb-4 p-3 rounded-2xl bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-2">
-                <span>🔐 Your Code:</span>
-                <span className="font-mono text-base font-black tracking-widest text-dark bg-white px-2 py-0.5 rounded-lg border border-amber-200">{debugHint}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const arr = debugHint.split('');
-                  setDigits(arr);
-                  handleComplete(debugHint);
-                }}
-                className="px-2.5 py-1 rounded-lg bg-accent text-dark font-extrabold text-[11px] hover:bg-accent-hover active:scale-95 transition-all shadow-sm"
-              >
-                Auto-fill
-              </button>
-            </div>
-          )}
-
           {/* Error Message */}
           {error && (
             <div className="mb-4 p-3 rounded-2xl bg-red-100 border border-primary/30 text-primary text-xs font-bold flex items-center gap-2">

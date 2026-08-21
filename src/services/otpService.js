@@ -2,10 +2,10 @@ import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 
-// EmailJS Configuration (Read from environment or fallback to defaults)
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
+// EmailJS Configuration
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_hr66lq6';
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_a4uounh';
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'PJxI5gZ91dz4F5tLi';
 
 /**
  * Generates a secure 6-digit numeric OTP code
@@ -39,31 +39,31 @@ export async function sendOtpToEmail(email, purpose = 'signup', name = 'Customer
       expires_at: expiresAt.toISOString(),
     });
 
-    // 2. Send via EmailJS if configured
-    if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY) {
-      try {
-        await emailjs.send(
-          EMAILJS_SERVICE_ID,
-          EMAILJS_TEMPLATE_ID,
-          {
-            to_email: normalizedEmail,
-            email: normalizedEmail,
-            to_name: name,
-            name: name,
-            otp_code: code,
-            passcode: code,
-            time: "10 minutes",
-            purpose: purpose === 'signup' ? 'Account Registration' : 'Account Login',
-            app_name: "EM's Burgers",
-          },
-          EMAILJS_PUBLIC_KEY
-        );
-        console.log(`[EmailJS] OTP email successfully dispatched to ${normalizedEmail}`);
-      } catch (emailError) {
-        console.warn('EmailJS dispatch error:', emailError);
-      }
-    } else {
-      console.log(`[OTP DEBUG] Sent 6-digit code to ${normalizedEmail}: ${code}`);
+    // 2. Dispatch real email via EmailJS
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          to_email: normalizedEmail,
+          email: normalizedEmail,
+          to_name: name,
+          name: name,
+          otp_code: code,
+          passcode: code,
+          time: "10 minutes",
+          purpose: purpose === 'signup' ? 'Account Registration' : 'Account Login',
+          app_name: "EM's Burgers",
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+      console.log(`[EmailJS] OTP email successfully dispatched to ${normalizedEmail}`);
+    } catch (emailError) {
+      console.error('EmailJS dispatch failed:', emailError);
+      return { 
+        success: false, 
+        message: emailError.text || emailError.message || 'Failed to send OTP to email. Please check your email address.' 
+      };
     }
 
     return { success: true, code };
