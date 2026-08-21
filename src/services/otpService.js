@@ -41,6 +41,7 @@ export async function sendOtpToEmail(email, purpose = 'signup', name = 'Customer
 
     // 2. Send via EmailJS if configured
     if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY) {
+      try {
         await emailjs.send(
           EMAILJS_SERVICE_ID,
           EMAILJS_TEMPLATE_ID,
