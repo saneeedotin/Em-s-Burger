@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { Lock, Mail, CheckCircle2, AlertCircle, Sparkles, KeyRound, ArrowLeft, RefreshCw, Send } from 'lucide-react';
 import { OtpVerificationModal } from '../components/OtpVerificationModal';
 import { sendOtpToEmail, verifyOtpCode } from '../services/otpService';
 
@@ -16,7 +16,14 @@ export function Login() {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [otpHint, setOtpHint] = useState('');
 
-  const { login, loginWithGoogle, currentUser } = useAuth();
+  // Forgot Password State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+
+  const { login, loginWithGoogle, resetPassword, currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -32,6 +39,25 @@ export function Login() {
       setTimeout(() => navigate('/admin', { replace: true }), 600);
     }
   }, [currentUser, navigate, from]);
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setForgotError('');
+    if (!forgotEmail) {
+      setForgotError('Please enter your email address.');
+      return;
+    }
+
+    setForgotLoading(true);
+    const res = await resetPassword(forgotEmail);
+    setForgotLoading(false);
+
+    if (res.success) {
+      setForgotSuccess(true);
+    } else {
+      setForgotError(res.message || 'Failed to send reset email.');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -217,9 +243,23 @@ export function Login() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold font-heading uppercase tracking-wider text-dark/70">
-                  Password
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold font-heading uppercase tracking-wider text-dark/70">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotSuccess(false);
+                      setForgotError('');
+                      setShowForgotModal(true);
+                    }}
+                    className="text-[11px] font-bold font-heading text-primary hover:underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-dark/40 absolute left-4 top-1/2 -translate-y-1/2" />
                   <input
@@ -262,6 +302,109 @@ export function Login() {
         onResend={handleResendOtp}
         onClose={() => setShowOtpModal(false)}
       />
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {showForgotModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/70 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-md bg-cream-light rounded-4xl p-6 sm:p-8 border-4 border-primary/20 shadow-2xl relative overflow-hidden"
+            >
+              {/* Back Button */}
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-dark/60 hover:text-primary transition-colors mb-4"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Login</span>
+              </button>
+
+              {/* Header */}
+              <div className="text-center space-y-2 mb-6">
+                <div className="w-14 h-14 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center shadow-inner">
+                  <KeyRound className="w-7 h-7" />
+                </div>
+                <h2 className="font-heading font-black text-2xl sm:text-3xl text-dark">
+                  RESET PASSWORD
+                </h2>
+                <p className="text-xs sm:text-sm text-dark/70 font-medium">
+                  Enter your registered email address and we'll send you a password reset link.
+                </p>
+              </div>
+
+              {/* Success Message */}
+              {forgotSuccess ? (
+                <div className="py-6 text-center space-y-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
+                    <CheckCircle2 className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-heading font-black text-xl text-dark">Reset Link Sent!</h3>
+                  <p className="text-xs text-dark/70 leading-relaxed">
+                    We have sent a password reset link to <span className="font-bold text-primary">{forgotEmail}</span>. Please check your inbox (and spam folder) to set your new password.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="w-full py-3 rounded-full bg-primary hover:bg-primary-hover text-cream font-heading font-bold text-sm shadow-md transition-all active:scale-95"
+                  >
+                    Return to Login
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  {/* Error Message */}
+                  {forgotError && (
+                    <div className="p-3 rounded-2xl bg-red-100 border border-primary/30 text-primary text-xs font-bold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{forgotError}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold font-heading uppercase tracking-wider text-dark/70">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-dark/40 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="email"
+                        placeholder="your-email@example.com"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                        className="w-full pl-11 pr-4 py-3 rounded-2xl bg-cream border-2 border-primary/20 text-dark font-medium text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="w-full py-3.5 rounded-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-cream font-heading font-extrabold text-base shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {forgotLoading ? (
+                      <>
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        <span>Sending Link...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Reset Link</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
