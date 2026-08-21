@@ -15,6 +15,7 @@ export function Signup() {
   const [success, setSuccess] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpHint, setOtpHint] = useState('');
 
   const { signup, loginWithGoogle, currentUser } = useAuth();
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ export function Signup() {
     setSendingOtp(false);
 
     if (res.success) {
+      if (res.code) setOtpHint(res.code);
       setShowOtpModal(true);
     } else {
       setError(res.message || 'Failed to send verification code to this email.');
@@ -241,6 +243,7 @@ export function Signup() {
         email={email}
         name={name}
         purpose="signup"
+        initialCode={otpHint}
         onVerify={handleVerifyOtp}
         onResend={handleResendOtp}
         onClose={() => setShowOtpModal(false)}

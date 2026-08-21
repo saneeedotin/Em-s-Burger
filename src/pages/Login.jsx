@@ -14,6 +14,7 @@ export function Login() {
   const [success, setSuccess] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpHint, setOtpHint] = useState('');
 
   const { login, loginWithGoogle, currentUser } = useAuth();
   const navigate = useNavigate();
@@ -65,6 +66,7 @@ export function Login() {
     setSendingOtp(false);
 
     if (otpRes.success) {
+      if (otpRes.code) setOtpHint(otpRes.code);
       setShowOtpModal(true);
     } else {
       // Direct login fallback if email dispatch failed
@@ -255,6 +257,7 @@ export function Login() {
         isOpen={showOtpModal}
         email={email}
         purpose="login"
+        initialCode={otpHint}
         onVerify={handleVerifyOtp}
         onResend={handleResendOtp}
         onClose={() => setShowOtpModal(false)}
