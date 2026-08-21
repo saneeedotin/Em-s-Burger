@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { OtpVerificationModal } from '../components/OtpVerificationModal';
+import { sendOtpToEmail, verifyOtpCode } from '../services/otpService';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +12,8 @@ export function Login() {
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
 
   const { login, loginWithGoogle, currentUser } = useAuth();
   const navigate = useNavigate();
@@ -38,18 +42,67 @@ export function Login() {
       return;
     }
 
+    // Admin direct bypass
+    if (email.toLowerCase() === 'admin@emsburgers.com' || email.toLowerCase() === 'demo@emsburgers.com') {
+      const res = await login(email, password);
+      if (res.success) {
+        setSuccess(true);
+        if (res.isAdmin) {
+          setTimeout(() => navigate('/admin', { replace: true }), 600);
+        } else {
+          setTimeout(() => navigate(from, { replace: true }), 600);
+        }
+      } else {
+        setError(res.message);
+        triggerShake();
+      }
+      return;
+    }
+
+    // Customer accounts: Send 6-digit OTP verification code
+    setSendingOtp(true);
+    const otpRes = await sendOtpToEmail(email, 'login');
+    setSendingOtp(false);
+
+    if (otpRes.success) {
+      setShowOtpModal(true);
+    } else {
+      // Direct login fallback if email dispatch failed
+      const res = await login(email, password);
+      if (res.success) {
+        setSuccess(true);
+        setTimeout(() => navigate(from, { replace: true }), 600);
+      } else {
+        setError(res.message);
+        triggerShake();
+      }
+    }
+  };
+
+  const handleVerifyOtp = async (code) => {
+    const verification = await verifyOtpCode(email, code);
+    if (!verification.success) {
+      return verification;
+    }
+
+    // OTP verified! Proceed with login
     const res = await login(email, password);
     if (res.success) {
+      setShowOtpModal(false);
       setSuccess(true);
       if (res.isAdmin) {
         setTimeout(() => navigate('/admin', { replace: true }), 600);
       } else {
         setTimeout(() => navigate(from, { replace: true }), 600);
       }
+      return { success: true };
     } else {
-      setError(res.message);
-      triggerShake();
+      return { success: false, message: res.message };
     }
+  };
+
+  const handleResendOtp = async () => {
+    return await sendOtpToEmail(email, 'login');
   };
 
   const handleGoogleLogin = async () => {
@@ -179,9 +232,10 @@ export function Login() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-full bg-primary hover:bg-primary-hover text-cream font-heading font-extrabold text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
+                disabled={sendingOtp}
+                className="w-full py-3.5 rounded-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-cream font-heading font-extrabold text-base shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                Log In
+                {sendingOtp ? 'Sending 6-Digit Code...' : 'Log In'}
               </button>
             </form>
 
@@ -195,6 +249,16 @@ export function Login() {
           </>
         )}
       </motion.div>
+
+      {/* 6-Digit OTP Verification Modal */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        email={email}
+        purpose="login"
+        onVerify={handleVerifyOtp}
+        onResend={handleResendOtp}
+        onClose={() => setShowOtpModal(false)}
+      />
     </div>
   );
 }

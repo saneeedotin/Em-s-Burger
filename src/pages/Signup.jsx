@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { OtpVerificationModal } from '../components/OtpVerificationModal';
+import { sendOtpToEmail, verifyOtpCode } from '../services/otpService';
 
 export function Signup() {
   const [name, setName] = useState('');
@@ -11,6 +13,8 @@ export function Signup() {
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
 
   const { signup, loginWithGoogle, currentUser } = useAuth();
   const navigate = useNavigate();
@@ -39,14 +43,39 @@ export function Signup() {
       return;
     }
 
-    const res = await signup(name, email, password);
+    // Send 6-digit OTP to the entered email before creating the account
+    setSendingOtp(true);
+    const res = await sendOtpToEmail(email, 'signup', name);
+    setSendingOtp(false);
+
     if (res.success) {
-      setSuccess(true);
-      setTimeout(() => navigate('/dashboard', { replace: true }), 600);
+      setShowOtpModal(true);
     } else {
-      setError(res.message);
+      setError(res.message || 'Failed to send verification code to this email.');
       triggerShake();
     }
+  };
+
+  const handleVerifyOtp = async (code) => {
+    const verification = await verifyOtpCode(email, code);
+    if (!verification.success) {
+      return verification;
+    }
+
+    // OTP verified! Now create the account
+    const res = await signup(name, email, password);
+    if (res.success) {
+      setShowOtpModal(false);
+      setSuccess(true);
+      setTimeout(() => navigate('/dashboard', { replace: true }), 600);
+      return { success: true };
+    } else {
+      return { success: false, message: res.message };
+    }
+  };
+
+  const handleResendOtp = async () => {
+    return await sendOtpToEmail(email, 'signup', name);
   };
 
   const handleGoogleSignup = async () => {
@@ -188,9 +217,10 @@ export function Signup() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-full bg-accent hover:bg-accent-hover text-dark font-heading font-extrabold text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
+                disabled={sendingOtp}
+                className="w-full py-3.5 rounded-full bg-accent hover:bg-accent-hover disabled:opacity-50 text-dark font-heading font-extrabold text-base shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                Create Account & Join
+                {sendingOtp ? 'Sending 6-Digit Code...' : 'Create Account & Join'}
               </button>
             </form>
 
@@ -204,6 +234,17 @@ export function Signup() {
           </>
         )}
       </motion.div>
+
+      {/* 6-Digit OTP Verification Modal */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        email={email}
+        name={name}
+        purpose="signup"
+        onVerify={handleVerifyOtp}
+        onResend={handleResendOtp}
+        onClose={() => setShowOtpModal(false)}
+      />
     </div>
   );
 }
