@@ -40,6 +40,29 @@ export function Login() {
     }
   }, [currentUser, navigate, from]);
 
+  const handleDirectForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address in the box above first.');
+      triggerShake();
+      return;
+    }
+
+    setForgotEmail(email);
+    setForgotError('');
+    setForgotSuccess(false);
+    setShowForgotModal(true);
+    setForgotLoading(true);
+
+    const res = await resetPassword(email);
+    setForgotLoading(false);
+
+    if (res.success) {
+      setForgotSuccess(true);
+    } else {
+      setForgotError(res.message || 'Failed to send reset email.');
+    }
+  };
+
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setForgotError('');
@@ -249,12 +272,7 @@ export function Login() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => {
-                      setForgotEmail(email);
-                      setForgotSuccess(false);
-                      setForgotError('');
-                      setShowForgotModal(true);
-                    }}
+                    onClick={handleDirectForgotPassword}
                     className="text-[11px] font-bold font-heading text-primary hover:underline"
                   >
                     Forgot Password?
