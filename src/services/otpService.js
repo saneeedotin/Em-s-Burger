@@ -41,21 +41,25 @@ export async function sendOtpToEmail(email, purpose = 'signup', name = 'Customer
 
     // 2. Send via EmailJS if configured
     if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY) {
-      try {
         await emailjs.send(
           EMAILJS_SERVICE_ID,
           EMAILJS_TEMPLATE_ID,
           {
             to_email: normalizedEmail,
+            email: normalizedEmail,
             to_name: name,
+            name: name,
             otp_code: code,
+            passcode: code,
+            time: "10 minutes",
             purpose: purpose === 'signup' ? 'Account Registration' : 'Account Login',
             app_name: "EM's Burgers",
           },
           EMAILJS_PUBLIC_KEY
         );
+        console.log(`[EmailJS] OTP email successfully dispatched to ${normalizedEmail}`);
       } catch (emailError) {
-        console.warn('EmailJS dispatch error (will still allow OTP entry):', emailError);
+        console.warn('EmailJS dispatch error:', emailError);
       }
     } else {
       console.log(`[OTP DEBUG] Sent 6-digit code to ${normalizedEmail}: ${code}`);
