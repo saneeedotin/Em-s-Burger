@@ -88,10 +88,12 @@ export function Dashboard() {
                 <h1 className="font-heading font-black text-3xl sm:text-5xl tracking-tight text-cream">
                   WELCOME BACK, {currentUser?.name?.toUpperCase() || 'FOODIE'}!
                 </h1>
+                {(currentUser?.numeric_id || currentUser?.hash_id) && (
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-dark text-accent border-2 border-accent/20 shadow-inner w-fit mt-2 sm:mt-0">
                     <span className="text-sm font-bold text-cream/70 uppercase tracking-widest">ID:</span>
-                    <span className="font-mono font-black text-3xl sm:text-4xl">#{currentUser?.numeric_id || currentUser?.hash_id?.replace('#', '') || 'MISSING'}</span>
+                    <span className="font-mono font-black text-3xl sm:text-4xl">#{currentUser.numeric_id || currentUser.hash_id?.replace('#', '')}</span>
                   </div>
+                )}
               </div>
               
               <p className="text-cream/90 text-sm sm:text-base font-medium max-w-xl">
