@@ -5,35 +5,21 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Sparkles, ArrowRight, Flame } from 'lucide-react';
 import { MENU_ITEMS } from '../data/menu';
-import { MenuItemCard } from './MenuItemCard';
 import { WaveDivider } from './WaveDivider';
+import FlowingMenu from './FlowingMenu';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function SignaturePicksStrip() {
   const sectionRef = useRef(null);
-  const cardsGridRef = useRef(null);
 
   const signatureItems = MENU_ITEMS.filter((item) => item.isSignature).slice(0, 4);
 
-  useGSAP(
-    () => {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-      gsap.from(cardsGridRef.current.children, {
-        y: 60,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.8,
-        ease: 'back.out(1.4)',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 80%',
-        },
-      });
-    },
-    { scope: sectionRef }
-  );
+  const flowingItems = signatureItems.map((item) => ({
+    link: '#',
+    text: item.name,
+    image: item.image
+  }));
 
   return (
     <section ref={sectionRef} className="py-20 bg-cream text-dark relative overflow-hidden">
@@ -64,11 +50,17 @@ export function SignaturePicksStrip() {
           </Link>
         </div>
 
-        {/* Cards Grid */}
-        <div ref={cardsGridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {signatureItems.map((item) => (
-            <MenuItemCard key={item.id} item={item} />
-          ))}
+        {/* Flowing Menu Component */}
+        <div className="mt-8 rounded-[40px] overflow-hidden shadow-2xl border-4 border-primary/20" style={{ height: '500px', position: 'relative' }}>
+          <FlowingMenu 
+            items={flowingItems}
+            speed={15}
+            bgColor="#FEF7EB"
+            textColor="#DB3927"
+            marqueeBgColor="#DB3927"
+            marqueeTextColor="#FEF7EB"
+            borderColor="rgba(219, 57, 39, 0.2)"
+          />
         </div>
 
       </div>
