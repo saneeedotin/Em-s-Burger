@@ -6,6 +6,7 @@ import { VegModeProvider } from './context/VegModeContext';
 import { CartProvider } from './context/CartContext';
 import { MenuProvider } from './context/MenuContext';
 import { RequireAuth } from './components/RequireAuth';
+import { RequireAdmin } from './components/RequireAdmin';
 import { SmoothScroll } from './components/SmoothScroll';
 import { BurgerCursor } from './components/BurgerCursor';
 import { Navbar } from './components/Navbar';
@@ -62,7 +63,11 @@ export function App() {
           
           {isAdmin ? (
             <Routes location={location}>
-              <Route path="/admin" element={<AdminLayout />}>
+              <Route path="/admin" element={
+                <RequireAdmin>
+                  <AdminLayout />
+                </RequireAdmin>
+              }>
                 <Route index element={<AdminDashboard />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="users" element={<AdminUsers />} />

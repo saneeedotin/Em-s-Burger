@@ -31,7 +31,7 @@ export function Loyalty() {
         </div>
 
         {/* Interactive Punch Card Component */}
-        <LoyaltyPunchCard initialCount={loyaltyPoints} initialBeverageCount={beveragePoints} />
+        <LoyaltyPunchCard initialCount={loyaltyPoints} initialBeverageCount={beveragePoints} mode="dashboard" />
 
         {/* How It Works Steps */}
         <div className="bg-cream-light rounded-4xl p-8 border-2 border-primary/15 shadow-md space-y-6">
