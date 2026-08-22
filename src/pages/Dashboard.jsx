@@ -18,11 +18,14 @@ export function Dashboard() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [justUnlocked, setJustUnlocked] = useState(false);
   const [reorderedId, setReorderedId] = useState(null);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   const points = currentUser?.stamps || 0;
+  const beveragePoints = currentUser?.beverageStamps || 0;
   const isUnlocked = points >= 10; 
 
   const [burgerJustPunched, setBurgerJustPunched] = useState(null);
+  const [beverageJustPunched, setBeverageJustPunched] = useState(null);
 
   useEffect(() => {
     if (points >= 10) {
@@ -173,17 +176,49 @@ export function Dashboard() {
               {/* Punch Card Container */}
               <div className="relative w-full" style={{ perspective: '2000px' }}>
                 <div className="relative w-full max-w-2xl mx-auto">
-                  <CardFace
-                    type="burger"
-                    count={points}
-                    setCount={() => {}} 
-                    justPunched={burgerJustPunched}
-                    setJustPunched={setBurgerJustPunched}
-                    onFlip={() => {}}
-                    mode="dashboard"
-                    onSimulateScan={() => {}}
-                    onReset={() => {}}
-                  />
+                  <motion.div
+                    initial={false}
+                    animate={{ rotateY: isFlipped ? 180 : 0 }}
+                    transition={{ duration: 0.8, type: 'spring', stiffness: 200, damping: 25 }}
+                    style={{ transformStyle: 'preserve-3d' }}
+                    className="relative w-full"
+                  >
+                    {/* Front Face: Burgers */}
+                    <div style={{ backfaceVisibility: 'hidden' }} className="w-full">
+                      <CardFace
+                        type="burger"
+                        count={points}
+                        setCount={() => {}} 
+                        justPunched={burgerJustPunched}
+                        setJustPunched={setBurgerJustPunched}
+                        onFlip={() => setIsFlipped(true)}
+                        mode="dashboard"
+                        onSimulateScan={() => {}}
+                        onReset={() => {}}
+                      />
+                    </div>
+
+                    {/* Back Face: Beverages */}
+                    <div
+                      style={{
+                        backfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                      }}
+                      className="absolute inset-0 w-full h-full"
+                    >
+                      <CardFace
+                        type="beverage"
+                        count={beveragePoints}
+                        setCount={() => {}} 
+                        justPunched={beverageJustPunched}
+                        setJustPunched={setBeverageJustPunched}
+                        onFlip={() => setIsFlipped(false)}
+                        mode="dashboard"
+                        onSimulateScan={() => {}}
+                        onReset={() => {}}
+                      />
+                    </div>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
