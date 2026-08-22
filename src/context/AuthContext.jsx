@@ -69,6 +69,12 @@ export function AuthProvider({ children }) {
 
       if (userDoc.exists()) {
         const data = userDoc.data();
+        if (data.isBanned) {
+          await signOut(auth);
+          setCurrentUser(null);
+          throw new Error('BANNED_USER');
+        }
+        
         if (!data.numeric_id && !data.hash_id) {
           // Retroactively generate an ID for older test accounts
           const numericId = await generateNextUserId();
@@ -115,10 +121,17 @@ export function AuthProvider({ children }) {
       }
 
       await signInWithEmailAndPassword(auth, email, password);
+      // fetchProfile is triggered by onAuthStateChanged, but let's check it explicitly here to catch the throw
+      const user = auth.currentUser;
+      if (user) {
+        await fetchProfile(user.uid, user.email, user.displayName);
+      }
       return { success: true, isAdmin: false };
     } catch (error) {
       let message = error.message;
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (error.message === 'BANNED_USER') {
+        message = 'Your account has been permanently suspended.';
+      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         message = 'Invalid email or password.';
       }
       return { success: false, message };
@@ -136,6 +149,9 @@ export function AuthProvider({ children }) {
       return { success: true };
     } catch (error) {
       console.error('Google sign-in error:', error);
+      if (error.message === 'BANNED_USER') {
+        return { success: false, message: 'Your account has been permanently suspended.' };
+      }
       if (error.code === 'auth/popup-closed-by-user') {
         return { success: false, message: 'Google sign-in was closed before completing.' };
       }

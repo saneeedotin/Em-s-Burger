@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { User, ShoppingBag, Award, Heart } from 'lucide-react';
+import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { User, ShoppingBag, Award, Heart, Ban, ShieldAlert } from 'lucide-react';
 
 export function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -39,6 +39,7 @@ export function AdminUsers() {
         hash_id: profile.hash_id,
         stamps: profile.stamps || 0,
         orderCount: orderCounts[profile.id] || 0,
+        isBanned: profile.isBanned || false,
         favourites: [] // Mock for now until a real favourites system is built
       }));
 
@@ -47,6 +48,21 @@ export function AdminUsers() {
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleBanUser = async (userId, currentStatus) => {
+    if (window.confirm(`Are you sure you want to ${currentStatus ? 'unban' : 'ban'} this user?`)) {
+      try {
+        const userRef = doc(db, 'profiles', userId);
+        await updateDoc(userRef, {
+          isBanned: !currentStatus
+        });
+        setUsers(users.map(u => u.id === userId ? { ...u, isBanned: !currentStatus } : u));
+      } catch (error) {
+        console.error('Error toggling ban status:', error);
+        alert('Failed to update ban status.');
+      }
     }
   };
 
@@ -77,6 +93,7 @@ export function AdminUsers() {
                 <th className="p-4 font-semibold text-dark/80 text-center">Total Orders</th>
                 <th className="p-4 font-semibold text-dark/80 text-center">Loyalty Stamps</th>
                 <th className="p-4 font-semibold text-dark/80">Favourites</th>
+                <th className="p-4 font-semibold text-dark/80 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -89,10 +106,15 @@ export function AdminUsers() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <div className="font-medium text-dark">{user.name}</div>
+                          <div className={`font-medium ${user.isBanned ? 'text-red-600 line-through' : 'text-dark'}`}>{user.name}</div>
                           {(user.numeric_id || user.hash_id) && (
                             <span className="font-mono bg-dark/5 px-1.5 py-0.5 rounded text-[10px] text-dark/70 font-bold tracking-wider">
                               #{user.numeric_id || user.hash_id?.replace('#', '')}
+                            </span>
+                          )}
+                          {user.isBanned && (
+                            <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1">
+                              <ShieldAlert size={10} /> Banned
                             </span>
                           )}
                         </div>
@@ -126,6 +148,19 @@ export function AdminUsers() {
                         <span className="text-xs text-dark/40">No favourites</span>
                       )}
                     </div>
+                  </td>
+                  <td className="p-4 text-right">
+                    <button
+                      onClick={() => toggleBanUser(user.id, user.isBanned)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                        user.isBanned 
+                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
+                          : 'bg-red-50 text-red-600 hover:bg-red-100'
+                      }`}
+                    >
+                      <Ban size={14} />
+                      {user.isBanned ? 'Unban' : 'Ban User'}
+                    </button>
                   </td>
                 </tr>
               ))}

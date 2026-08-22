@@ -84,8 +84,12 @@ export function AdminMenu() {
     // basic validation
     if (!formData.name || !formData.price || !formData.category) return;
 
+    // Default placeholder if no image uploaded
+    const defaultImage = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80';
+
     const finalItem = {
       ...formData,
+      image: formData.image || defaultImage,
       price: Number(formData.price)
     };
 
@@ -233,17 +237,17 @@ export function AdminMenu() {
 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Item Name *</label>
-                  <input type="text" name="name" required value={formData.name || ''} onChange={handleChange} className="w-full bg-cream-light border-2 border-transparent rounded-xl p-3 focus:border-primary outline-none transition-colors" />
+                  <input type="text" name="name" required value={formData.name || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" />
                 </div>
                 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Price (₹) *</label>
-                  <input type="number" name="price" required value={formData.price || ''} onChange={handleChange} className="w-full bg-cream-light border-2 border-transparent rounded-xl p-3 focus:border-primary outline-none transition-colors" />
+                  <input type="number" name="price" required value={formData.price || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Category *</label>
-                  <select name="category" required value={formData.category || ''} onChange={handleChange} className="w-full bg-cream-light border-2 border-transparent rounded-xl p-3 focus:border-primary outline-none transition-colors">
+                  <select name="category" required value={formData.category || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all cursor-pointer">
                     {categories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.label}</option>
                     ))}
@@ -252,12 +256,12 @@ export function AdminMenu() {
                 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Badge (Optional)</label>
-                  <input type="text" name="badge" placeholder="e.g. Bestseller" value={formData.badge || ''} onChange={handleChange} className="w-full bg-cream-light border-2 border-transparent rounded-xl p-3 focus:border-primary outline-none transition-colors" />
+                  <input type="text" name="badge" placeholder="e.g. Bestseller" value={formData.badge || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" />
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
                   <label className="font-bold text-dark text-sm">Description</label>
-                  <textarea name="description" rows="3" value={formData.description || ''} onChange={handleChange} className="w-full bg-cream-light border-2 border-transparent rounded-xl p-3 focus:border-primary outline-none transition-colors resize-none"></textarea>
+                  <textarea name="description" rows="3" value={formData.description || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all resize-none"></textarea>
                 </div>
 
                 <div className="md:col-span-2 flex gap-6 pt-2">
