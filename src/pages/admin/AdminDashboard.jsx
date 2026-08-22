@@ -103,7 +103,7 @@ export function AdminDashboard() {
       <div className="text-center space-y-4">
         <h2 className="text-4xl md:text-5xl font-heading font-black text-dark tracking-tight">Customer Search</h2>
         <p className="text-dark/60 text-lg max-w-xl mx-auto">
-          Find customers instantly using their 4-digit hash code, name, or email to view details or manage loyalty.
+          Find customers instantly using their EMCODE, name, or email to view details or manage loyalty.
         </p>
       </div>
 
@@ -114,7 +114,7 @@ export function AdminDashboard() {
         <input
           type="text"
           className="w-full bg-white border-2 border-dark/10 text-dark rounded-3xl py-6 pl-20 pr-8 text-2xl font-heading font-bold shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all outline-none placeholder:text-dark/20"
-          placeholder="Enter 4-digit hash #, name, or email..."
+          placeholder="Enter EMCODE, name, or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           autoFocus
@@ -169,7 +169,7 @@ export function AdminDashboard() {
                           {(user.numeric_id || user.hash_id) && (
                             <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-lg font-mono text-sm font-bold">
                               <Hash size={12} />
-                              #{user.numeric_id || user.hash_id?.replace('#', '')}
+                              EM{user.numeric_id || user.hash_id?.replace('#', '')}
                             </span>
                           )}
                         </div>
@@ -233,7 +233,7 @@ export function AdminDashboard() {
                     {(selectedUser.numeric_id || selectedUser.hash_id) && (
                       <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-md font-mono text-xs font-bold">
                         <Hash size={10} />
-                        #{selectedUser.numeric_id || selectedUser.hash_id?.replace('#', '')}
+                        EM{selectedUser.numeric_id || selectedUser.hash_id?.replace('#', '')}
                       </span>
                     )}
                     {selectedUser.isBanned && (

@@ -71,7 +71,7 @@ export function AdminLoyalty() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-dark/40" size={20} />
           <input 
             type="text" 
-            placeholder="Search customer by name, email, or hash code..." 
+            placeholder="Search customer by name, email, or EMCODE..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 rounded-xl bg-cream/50 border-none focus:ring-2 focus:ring-primary text-dark"
@@ -91,8 +91,8 @@ export function AdminLoyalty() {
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-lg text-dark">{name}</h3>
                     {(user.numeric_id || user.hash_id) && (
-                      <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-lg font-mono text-xs font-bold">
-                        #{user.numeric_id || user.hash_id?.replace('#', '')}
+                      <span className="inline-flex items-center gap-1 bg-dark/5 px-2 py-0.5 rounded text-xs font-mono font-bold text-dark/70">
+                        EM{user.numeric_id || user.hash_id?.replace('#', '')}
                       </span>
                     )}
                   </div>

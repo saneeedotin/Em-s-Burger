@@ -90,8 +90,8 @@ export function Dashboard() {
                 </h1>
                 {(currentUser?.numeric_id || currentUser?.hash_id) && (
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-dark text-accent border-2 border-accent/20 shadow-inner w-fit mt-2 sm:mt-0">
-                    <span className="text-sm font-bold text-cream/70 uppercase tracking-widest">ID:</span>
-                    <span className="font-mono font-black text-3xl sm:text-4xl">#{currentUser.numeric_id || currentUser.hash_id?.replace('#', '')}</span>
+                    <span className="text-sm font-bold text-cream/70 uppercase tracking-widest">EMCODE:</span>
+                    <span className="font-mono font-black text-3xl sm:text-4xl">EM{currentUser.numeric_id || currentUser.hash_id?.replace('#', '')}</span>
                   </div>
                 )}
               </div>
