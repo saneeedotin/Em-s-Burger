@@ -95,9 +95,7 @@
   margin: 2em 2vw;
   padding: 1em 0;
   border-radius: 50px;
-  background-color: #FEF7EB;
-  background-size: contain;
-  background-repeat: no-repeat;
+  background-size: cover;
   background-position: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
