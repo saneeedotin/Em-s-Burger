@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
 import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
-import { Search, Hash, User, Mail, Award, ShoppingBag, Coffee, Star, Sparkles, Flame, Utensils } from 'lucide-react';
+import { Search, Hash, User, Mail, Award, ShoppingBag, Coffee, Star, Sparkles, Flame, Utensils, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -149,12 +150,12 @@ export function AdminDashboard() {
                         </div>
                       </div>
 
-                      <Link 
-                        to="/admin/users" 
+                      <button 
+                        onClick={() => setSelectedUser(user)}
                         className="px-5 py-2.5 bg-white border-2 border-primary/20 text-primary hover:bg-primary hover:text-white rounded-xl font-heading font-bold transition-colors h-11 flex items-center mt-5"
                       >
                         View User
-                      </Link>
+                      </button>
                     </div>
 
                   </div>
@@ -162,6 +163,80 @@ export function AdminDashboard() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* User Info Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative">
+            <button 
+              onClick={() => setSelectedUser(null)}
+              className="absolute top-4 right-4 p-2 text-dark/40 hover:text-dark hover:bg-dark/5 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+            <div className="p-8 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-heading font-black text-3xl">
+                  {(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-dark">{selectedUser.name || 'Unknown'}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    {(selectedUser.numeric_id || selectedUser.hash_id) && (
+                      <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-md font-mono text-xs font-bold">
+                        <Hash size={10} />
+                        #{selectedUser.numeric_id || selectedUser.hash_id?.replace('#', '')}
+                      </span>
+                    )}
+                    {selectedUser.isBanned && (
+                       <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1">Banned</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-dark/10">
+                <div>
+                  <label className="text-xs font-bold text-dark/40 uppercase tracking-wider block mb-1">Email</label>
+                  <div className="text-dark font-medium flex items-center gap-2">
+                    <Mail size={16} className="text-dark/40" />
+                    {selectedUser.email}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-dark/40 uppercase tracking-wider block mb-1">Loyalty Stamps</label>
+                  <div className="text-dark font-bold flex items-center gap-2">
+                    <Award size={16} className="text-primary" />
+                    {selectedUser.stamps || 0} / 10
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-dark/40 uppercase tracking-wider block mb-1">Role</label>
+                    <div className="text-dark font-medium capitalize">
+                      {selectedUser.role || 'User'}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-dark/40 uppercase tracking-wider block mb-1">Created At</label>
+                    <div className="text-dark font-medium text-sm">
+                      {selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 bg-cream/30 border-t border-dark/5 flex justify-end">
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="px-6 py-2.5 bg-dark text-white rounded-xl font-bold hover:bg-dark/90 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
