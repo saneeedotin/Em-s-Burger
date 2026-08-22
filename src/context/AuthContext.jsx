@@ -92,7 +92,8 @@ export function AuthProvider({ children }) {
           numeric_id: numericId,
           role: 'user',
           stamps: 1, // Start with 1 welcome stamp!
-          favourites: []
+          favourites: [],
+          created_at: new Date().toISOString()
         };
         await setDoc(userDocRef, newProfile);
         setCurrentUser({ id: userId, ...newProfile });
@@ -178,7 +179,8 @@ export function AuthProvider({ children }) {
         numeric_id: numericId,
         role: 'user',
         stamps: 1, // Start with 1 welcome stamp!
-        favourites: []
+        favourites: [],
+        created_at: new Date().toISOString()
       });
       
       return { success: true };

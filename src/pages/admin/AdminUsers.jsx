@@ -16,8 +16,8 @@ export function AdminUsers() {
       // In a real production app, counting orders per user should be a view or aggregate query.
       // For this migration, we will fetch profiles and then a summary of orders if possible,
       // but to keep it simple we'll just fetch profiles and fetch all orders to aggregate locally.
-      
-      const profilesSnapshot = await getDocs(query(collection(db, 'profiles'), orderBy('created_at', 'desc')));
+      // Fetch all profiles without orderBy to ensure we get all accounts even if they lack created_at
+      const profilesSnapshot = await getDocs(collection(db, 'profiles'));
       const ordersSnapshot = await getDocs(collection(db, 'orders'));
 
       const profilesData = profilesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -40,8 +40,17 @@ export function AdminUsers() {
         stamps: profile.stamps || 0,
         orderCount: orderCounts[profile.id] || 0,
         isBanned: profile.isBanned || false,
-        favourites: [] // Mock for now until a real favourites system is built
+        favourites: [], // Mock for now until a real favourites system is built
+        created_at: profile.created_at || null
       }));
+
+      // Sort users by numeric_id descending (newest first)
+      formattedUsers.sort((a, b) => {
+        if (a.numeric_id && b.numeric_id) {
+          return b.numeric_id - a.numeric_id;
+        }
+        return 0;
+      });
 
       setUsers(formattedUsers);
     } catch (error) {
