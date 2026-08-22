@@ -110,7 +110,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       // Hardcoded admin check
-      if (email.toLowerCase() === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      if ((email.toLowerCase() === ADMIN_CREDENTIALS.email || email.toLowerCase() === 'admin@emsburger.com') && password === ADMIN_CREDENTIALS.password) {
         setCurrentUser({ id: 'admin', email: ADMIN_CREDENTIALS.email, role: 'admin', name: 'Admin' });
         return { success: true, isAdmin: true };
       }
