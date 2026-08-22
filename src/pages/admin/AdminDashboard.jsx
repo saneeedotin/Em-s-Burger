@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
 import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
-import { Search, Hash, User, Mail, Award, ShoppingBag, Coffee, Star, Sparkles, Flame, Utensils, X } from 'lucide-react';
+import { Search, Hash, User, Mail, Award, ShoppingBag, Coffee, Star, Sparkles, Flame, Utensils, X, Ban } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function AdminDashboard() {
@@ -44,6 +44,26 @@ export function AdminDashboard() {
     } catch (err) {
       console.error('Failed to update stamps', err);
       alert('Failed to update stamps');
+    }
+  };
+
+  const toggleBanUser = async (userId, currentStatus) => {
+    if (window.confirm(`Are you sure you want to ${currentStatus ? 'unban' : 'ban'} this user?`)) {
+      try {
+        const userRef = doc(db, 'profiles', userId);
+        await updateDoc(userRef, {
+          isBanned: !currentStatus
+        });
+        
+        // Update both the main users list and the currently selected user in the modal
+        setUsers(users.map(u => u.id === userId ? { ...u, isBanned: !currentStatus } : u));
+        if (selectedUser && selectedUser.id === userId) {
+          setSelectedUser({ ...selectedUser, isBanned: !currentStatus });
+        }
+      } catch (error) {
+        console.error('Error toggling ban status:', error);
+        alert('Failed to update ban status.');
+      }
     }
   };
 
@@ -228,7 +248,19 @@ export function AdminDashboard() {
                 </div>
               </div>
             </div>
-            <div className="p-6 bg-cream/30 border-t border-dark/5 flex justify-end">
+            <div className="p-6 bg-cream/30 border-t border-dark/5 flex justify-between items-center">
+              <button
+                onClick={() => toggleBanUser(selectedUser.id, selectedUser.isBanned)}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all ${
+                  selectedUser.isBanned 
+                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
+                    : 'bg-red-50 text-red-600 hover:bg-red-100'
+                }`}
+              >
+                <Ban size={18} />
+                {selectedUser.isBanned ? 'Unban User' : 'Ban User'}
+              </button>
+              
               <button 
                 onClick={() => setSelectedUser(null)}
                 className="px-6 py-2.5 bg-dark text-white rounded-xl font-bold hover:bg-dark/90 transition-colors"
