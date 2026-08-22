@@ -15,9 +15,17 @@ export function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const q = query(collection(db, 'profiles'), orderBy('created_at', 'desc'));
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(collection(db, 'profiles'));
       const profilesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Sort users locally by numeric_id (newest first) to avoid missing profiles without created_at
+      profilesData.sort((a, b) => {
+        if (a.numeric_id && b.numeric_id) {
+          return b.numeric_id - a.numeric_id;
+        }
+        return 0;
+      });
+
       setUsers(profilesData);
     } catch (err) {
       console.error('Error fetching users:', err);
