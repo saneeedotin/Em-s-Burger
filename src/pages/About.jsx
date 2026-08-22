@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin } from 'lucide-react';
+import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../config/firebase';
 import { collection, getDocs, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -333,40 +333,47 @@ export function About() {
             </p>
           </div>
 
-          {/* Horizontal Row of Rounded Cards (Matches leoff-paris.com/en/about) */}
-          <div className="flex overflow-x-auto pb-8 pt-4 gap-6 scrollbar-thin scrollbar-thumb-dark/20 scrollbar-track-transparent px-2 snap-x">
-            {favoritePicks.map((pick) => (
-              <div
-                key={pick.id}
-                onClick={() => setSelectedDish(pick)}
-                className="anim-pick-card flex-none w-[220px] sm:w-[250px] snap-center cursor-pointer group text-center space-y-4"
-              >
-                {/* Circular image container */}
-                <div className="aspect-square w-full rounded-full overflow-hidden border-4 border-dark/95 shadow-xl bg-cream-light transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-300 relative">
-                  <img
-                    src={pick.img}
-                    alt={pick.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 right-4 z-10">
-                    <span className="px-2 py-0.5 rounded-full bg-primary text-cream font-heading font-extrabold text-[9px] uppercase shadow-md">
-                      {pick.badge}
-                    </span>
+          {/* Bento Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8 pt-4 px-2">
+            {favoritePicks.map((pick, index) => {
+              // Bento Logic: First item spans 2 columns on large screens
+              const isLarge = index === 0;
+              return (
+                <div
+                  key={pick.id}
+                  onClick={() => setSelectedDish(pick)}
+                  className={`anim-pick-card relative group cursor-pointer rounded-3xl sm:rounded-[40px] overflow-hidden bg-cream-light border-4 border-dark/95 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col ${isLarge ? 'md:col-span-2 lg:col-span-2 md:flex-row' : ''}`}
+                >
+                  {/* Background Image */}
+                  <div className={`w-full ${isLarge ? 'md:w-1/2 min-h-[300px]' : 'aspect-[4/3]'} relative overflow-hidden bg-white`}>
+                    <img
+                      src={pick.img}
+                      alt={pick.name}
+                      className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 left-4 z-10">
+                      <span className="px-3 py-1 rounded-full bg-primary text-cream font-heading font-extrabold text-[10px] uppercase shadow-md">
+                        {pick.badge}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Name */}
-                <div>
-                  <h3 className="font-heading font-black text-xl sm:text-2xl text-dark group-hover:text-primary transition-colors">
-                    {pick.name}
-                  </h3>
-                  <div className="inline-flex items-center gap-1 text-[10px] uppercase font-heading font-extrabold text-dark/60 mt-1">
-                    <Info className="w-3 h-3" />
-                    <span>View Story</span>
+                  {/* Content Area */}
+                  <div className={`p-6 sm:p-8 flex flex-col justify-center ${isLarge ? 'md:w-1/2' : 'flex-1'} bg-cream-light`}>
+                    <h3 className="font-heading font-black text-2xl sm:text-3xl text-dark group-hover:text-primary transition-colors mb-3">
+                      {pick.name}
+                    </h3>
+                    <p className="text-dark/70 text-sm font-medium leading-relaxed mb-6 line-clamp-3">
+                      {pick.desc}
+                    </p>
+                    <div className="mt-auto inline-flex items-center gap-1.5 text-xs uppercase font-heading font-extrabold text-primary group-hover:translate-x-2 transition-transform">
+                      <span>View Story</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="text-center pt-4">
