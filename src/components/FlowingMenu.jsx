@@ -13,28 +13,8 @@ function FlowingMenu({
   borderColor = '#fff',
   onItemClick
 }) {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-
   return (
     <div className="menu-wrap" style={{ backgroundColor: bgColor, position: 'relative' }}>
-      
-      {/* Background Hover Images */}
-      {items.map((item, idx) => (
-        <div
-          key={`bg-${idx}`}
-          className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-700 ease-out"
-          style={{
-            opacity: hoveredIndex === idx ? 0.15 : 0,
-            backgroundImage: `url("${item.image}")`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            transform: hoveredIndex === idx ? 'scale(1.05)' : 'scale(1)',
-            transition: 'opacity 0.7s ease-out, transform 3s ease-out'
-          }}
-        />
-      ))}
-
       <nav className="menu relative z-10">
         {items.map((item, idx) => (
           <MenuItem
@@ -51,10 +31,6 @@ function FlowingMenu({
                 onItemClick(item);
               }
             }}
-            onHoverChange={(isHovering) => {
-              if (isHovering) setHoveredIndex(idx);
-              else if (hoveredIndex === idx) setHoveredIndex(null);
-            }}
           />
         ))}
       </nav>
@@ -62,7 +38,7 @@ function FlowingMenu({
   );
 }
 
-function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marqueeTextColor, borderColor, onClick, onHoverChange }) {
+function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marqueeTextColor, borderColor, onClick }) {
   const itemRef = useRef(null);
   const marqueeRef = useRef(null);
   const marqueeInnerRef = useRef(null);
@@ -146,8 +122,6 @@ function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marquee
       .set(marqueeRef.current, { y: edge === 'top' ? '-101%' : '101%' }, 0)
       .set(marqueeInnerRef.current, { y: edge === 'top' ? '101%' : '-101%' }, 0)
       .to([marqueeRef.current, marqueeInnerRef.current], { y: '0%' }, 0);
-      
-    if (onHoverChange) onHoverChange(true);
   };
 
   const handleMouseLeave = ev => {
@@ -161,8 +135,6 @@ function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marquee
       .timeline({ defaults: animationDefaults })
       .to(marqueeRef.current, { y: edge === 'top' ? '-101%' : '101%' }, 0)
       .to(marqueeInnerRef.current, { y: edge === 'top' ? '101%' : '-101%' }, 0);
-      
-    if (onHoverChange) onHoverChange(false);
   };
 
   return (
@@ -178,7 +150,17 @@ function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marquee
         {text}
       </a>
       <div className="marquee" ref={marqueeRef} style={{ backgroundColor: marqueeBgColor }}>
-        <div className="marquee__inner-wrap">
+        {/* Row Background Image */}
+        <div 
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-50"
+          style={{
+            backgroundImage: `url("${image}")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+        <div className="marquee__inner-wrap relative z-10">
           <div className="marquee__inner" ref={marqueeInnerRef} aria-hidden="true">
             {[...Array(repetitions)].map((_, idx) => (
               <div className="marquee__part" key={idx} style={{ color: marqueeTextColor }}>
