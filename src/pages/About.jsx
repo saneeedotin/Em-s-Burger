@@ -3,6 +3,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight } from 'lucide-react';
+import BounceCards from '../components/BounceCards';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../config/firebase';
 import { collection, getDocs, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -333,52 +334,34 @@ export function About() {
             </p>
           </div>
 
-          {/* Uniform Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-8 pt-4 px-2">
-            {favoritePicks.map((pick, index) => {
-              const colors = [
-                { bg: 'bg-white', border: 'border-primary', textHover: 'group-hover:text-primary', badge: 'bg-primary text-cream', link: 'text-primary' },
-                { bg: 'bg-cream-light', border: 'border-dark/95', textHover: 'group-hover:text-dark', badge: 'bg-dark text-cream', link: 'text-dark' },
-                { bg: 'bg-cream', border: 'border-primary-dark', textHover: 'group-hover:text-primary-dark', badge: 'bg-primary-dark text-cream', link: 'text-primary-dark' }
-              ];
-              const theme = colors[index % colors.length];
-
-              return (
-                <div
-                  key={pick.id}
-                  onClick={() => setSelectedDish(pick)}
-                  className={`anim-pick-card relative group cursor-pointer rounded-[32px] overflow-hidden ${theme.bg} border-4 ${theme.border} shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col`}
-                >
-                  {/* Background Image */}
-                  <div className="w-full aspect-[4/3] relative overflow-hidden bg-white">
-                    <img
-                      src={pick.img}
-                      alt={pick.name}
-                      className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 left-4 z-10">
-                      <span className={`px-3 py-1 rounded-full ${theme.badge} font-heading font-extrabold text-[10px] uppercase shadow-md`}>
-                        {pick.badge}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content Area */}
-                  <div className={`p-6 flex flex-col justify-center flex-1 ${theme.bg}`}>
-                    <h3 className={`font-heading font-black text-2xl text-dark ${theme.textHover} transition-colors mb-2`}>
-                      {pick.name}
-                    </h3>
-                    <p className="text-dark/70 text-sm font-medium leading-relaxed mb-6 line-clamp-3">
-                      {pick.desc}
-                    </p>
-                    <div className={`mt-auto inline-flex items-center gap-1.5 text-xs uppercase font-heading font-extrabold ${theme.link} group-hover:translate-x-2 transition-transform`}>
-                      <span>View Story</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          {/* BounceCards Stack Layout */}
+          <div className="flex flex-col items-center justify-center pt-12 pb-16 overflow-hidden">
+            <BounceCards
+              className="custom-bounceCards scale-75 sm:scale-100"
+              images={favoritePicks.map(pick => pick.img)}
+              containerWidth={500}
+              containerHeight={300}
+              animationDelay={0.2}
+              animationStagger={0.08}
+              easeType="elastic.out(1, 0.8)"
+              transformStyles={[
+                "rotate(-15deg) translate(-220px)",
+                "rotate(-9deg) translate(-130px)",
+                "rotate(-3deg) translate(-40px)",
+                "rotate(3deg) translate(40px)",
+                "rotate(9deg) translate(130px)",
+                "rotate(15deg) translate(220px)"
+              ]}
+              enableHover={true}
+              onClickItem={(idx) => setSelectedDish(favoritePicks[idx])}
+            />
+            
+            <div className="mt-16 text-center animate-pulse">
+              <span className="inline-flex items-center gap-2 text-primary font-heading font-extrabold text-sm uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full">
+                <Info className="w-4 h-4" />
+                Hover & Click A Card To View Its Story
+              </span>
+            </div>
           </div>
 
           <div className="text-center pt-4">

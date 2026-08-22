@@ -17,7 +17,8 @@ export default function BounceCards({
     'rotate(-10deg) translate(85px)',
     'rotate(2deg) translate(170px)'
   ],
-  enableHover = true
+  enableHover = true,
+  onClickItem
 }) {
   const containerRef = useRef(null);
   useEffect(() => {
@@ -129,10 +130,12 @@ export default function BounceCards({
           key={idx}
           className={`card card-${idx}`}
           style={{
-            transform: transformStyles[idx] ?? 'none'
+            transform: transformStyles[idx] ?? 'none',
+            cursor: onClickItem ? 'pointer' : 'default'
           }}
           onMouseEnter={() => pushSiblings(idx)}
           onMouseLeave={resetSiblings}
+          onClick={() => onClickItem && onClickItem(idx)}
         >
           <img className="image" src={src} alt={`card-${idx}`} />
         </div>
