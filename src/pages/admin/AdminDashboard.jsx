@@ -9,6 +9,7 @@ export function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [filterMode, setFilterMode] = useState('all');
 
   useEffect(() => {
     fetchUsers();
@@ -68,6 +69,11 @@ export function AdminDashboard() {
   };
 
   const filteredUsers = users.filter(user => {
+    // If filterMode is banned, exclude non-banned users
+    if (filterMode === 'banned' && !user.isBanned) return false;
+
+    if (!searchTerm) return filterMode === 'banned'; // Show all banned if no search term
+
     const term = searchTerm.toLowerCase();
     return (
       (user.name && user.name.toLowerCase().includes(term)) ||
@@ -118,7 +124,27 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {searchTerm && (
+      <div className="flex items-center justify-center gap-2">
+        <button
+          onClick={() => setFilterMode('all')}
+          className={`px-4 py-2 rounded-full font-bold text-sm transition-colors ${
+            filterMode === 'all' ? 'bg-dark text-white' : 'bg-white border-2 border-dark/10 text-dark/60 hover:text-dark hover:border-dark/20'
+          }`}
+        >
+          All Customers
+        </button>
+        <button
+          onClick={() => setFilterMode('banned')}
+          className={`px-4 py-2 rounded-full font-bold text-sm transition-colors flex items-center gap-1 ${
+            filterMode === 'banned' ? 'bg-red-600 text-white' : 'bg-white border-2 border-dark/10 text-dark/60 hover:text-red-600 hover:border-red-200'
+          }`}
+        >
+          <Ban size={14} />
+          Banned Users
+        </button>
+      </div>
+
+      {(searchTerm || filterMode === 'banned') && (
         <div className="space-y-4">
           <h3 className="font-heading font-bold text-dark/60 text-lg px-2">Results ({filteredUsers.length})</h3>
           
@@ -272,7 +298,7 @@ export function AdminDashboard() {
         </div>
       )}
 
-      {!searchTerm && (
+      {(!searchTerm && filterMode !== 'banned') && (
         <div className="pt-12 text-center opacity-40">
           <Hash className="w-16 h-16 mx-auto mb-4" />
           <p className="font-heading font-bold text-xl">Start typing to search the database</p>
