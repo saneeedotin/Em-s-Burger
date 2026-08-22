@@ -34,6 +34,7 @@ import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminLoyalty } from './pages/admin/AdminLoyalty';
 import { AdminMenu } from './pages/admin/AdminMenu';
 import { AdminQRGenerator } from './pages/admin/AdminQRGenerator';
+import { AdminReviews } from './pages/admin/AdminReviews';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -68,6 +69,7 @@ export function App() {
                 <Route path="loyalty" element={<AdminLoyalty />} />
                 <Route path="menu" element={<AdminMenu />} />
                 <Route path="qr" element={<AdminQRGenerator />} />
+                <Route path="reviews" element={<AdminReviews />} />
               </Route>
             </Routes>
           ) : (
