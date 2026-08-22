@@ -93,7 +93,7 @@ export function Login() {
     }
 
     // Admin direct bypass
-    if (email.toLowerCase() === 'admin@emsburgers.com' || email.toLowerCase() === 'demo@emsburgers.com') {
+    if (email.toLowerCase() === 'admin@emsburgers.com' || email.toLowerCase() === 'admin@emsburger.com' || email.toLowerCase() === 'demo@emsburgers.com') {
       const res = await login(email, password);
       if (res.success) {
         setSuccess(true);
