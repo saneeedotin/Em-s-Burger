@@ -96,7 +96,7 @@ export function AdminLayout() {
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 lg:p-10 bg-[#FAF7F2]">
+        <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-6 lg:p-10 bg-[#FAF7F2]">
           <Outlet />
         </div>
       </main>

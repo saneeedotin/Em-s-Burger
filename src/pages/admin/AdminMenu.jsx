@@ -188,7 +188,7 @@ export function AdminMenu() {
 
       {/* Item Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+        <div data-lenis-prevent="true" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 md:p-8 relative shadow-2xl animate-scaleUp my-8">
             <button
               onClick={closeModal}
