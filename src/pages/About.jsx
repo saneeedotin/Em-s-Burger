@@ -270,7 +270,6 @@ export function About() {
                 direction="up"
                 overlayColor="transparent"
                 dim={1}
-                fade={0}
                 lift={40}
                 radius={100}
               />
