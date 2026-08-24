@@ -255,25 +255,28 @@ export function About() {
             </p>
           </div>
 
-          {/* Drifting Wall of Burgers on Right */}
-          <div className="lg:col-span-5 relative flex justify-center items-center h-[350px] md:h-[450px]">
-            <div className="absolute inset-0 overflow-hidden pointer-events-auto">
-              <DriftWall
-                items={driftItems}
-                columns={4}
-                tileWidth={180}
-                tileHeight={180}
-                gap={16}
-                tilt={12}
-                turn={-15}
-                perspective={1000}
-                speed={30}
-                direction="up"
-                overlayColor="transparent"
-                dim={1}
-                lift={40}
-                radius={100}
-              />
+          {/* Stack of Burgers on Right */}
+          <div className="lg:col-span-5 relative flex justify-center items-center h-[350px] md:h-[500px]">
+            <div className="absolute inset-0 overflow-hidden pointer-events-auto bg-dark/10 rounded-[40px] md:rounded-[60px] border-[6px] border-cream/10 shadow-2xl">
+              <ScrollStack 
+                itemDistance={80} 
+                stackPosition="20%" 
+                scaleEndPosition="5%" 
+                baseScale={0.8} 
+                blurAmount={1.2}
+              >
+                {driftItems.map((item, idx) => (
+                  <ScrollStackItem 
+                    key={idx} 
+                    itemClassName="!p-0 w-full aspect-square md:aspect-auto md:h-80 rounded-[30px] border-4 border-cream shadow-xl overflow-hidden bg-cream relative"
+                  >
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    <div className="absolute bottom-0 left-0 w-full p-3 bg-dark/80 backdrop-blur text-cream font-heading font-bold text-center text-sm tracking-wider uppercase">
+                      {item.title}
+                    </div>
+                  </ScrollStackItem>
+                ))}
+              </ScrollStack>
             </div>
           </div>
 
@@ -364,38 +367,31 @@ export function About() {
             </p>
           </div>
 
-          <div className="w-full overflow-hidden py-4 h-[600px] md:h-[700px] bg-cream/10 rounded-[40px] md:rounded-[60px] shadow-[inset_0_4px_30px_rgba(0,0,0,0.1)] border-8 border-cream/20 max-w-5xl mx-auto">
-            <ScrollStack 
-              itemDistance={130} 
-              stackPosition="15%" 
-              scaleEndPosition="5%" 
-              baseScale={0.85} 
-              blurAmount={1.5}
-            >
-              {favoritePicks.map((pick) => (
-                <ScrollStackItem 
-                  key={pick.id} 
-                  itemClassName="!p-0 flex flex-col md:flex-row bg-cream-light text-dark border-4 border-dark overflow-hidden cursor-pointer hover:border-primary transition-colors" 
+          <div className="w-full overflow-hidden py-4">
+            <LogoLoop
+              logos={favoritePicks}
+              speed={50}
+              direction="left"
+              logoHeight={260}
+              gap={32}
+              hoverSpeed={10}
+              fadeOut={true}
+              fadeOutColor="#eebc2f" /* Match bg-accent */
+              ariaLabel="Favourite Picks Loop"
+              renderItem={(pick) => (
+                <div 
+                  className="bg-cream/40 backdrop-blur-md rounded-3xl p-3 cursor-pointer hover:bg-cream/60 transition-all border-2 border-dark/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] group flex flex-col justify-between"
+                  style={{ width: '280px', height: '340px' }}
+                  onClick={() => setSelectedDish(pick)}
                 >
-                  <div 
-                    className="w-full md:w-2/5 h-48 md:h-full border-b-4 md:border-b-0 md:border-r-4 border-dark relative group overflow-hidden"
-                    onClick={() => setSelectedDish(pick)}
-                  >
-                    <img src={pick.img} alt={pick.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="overflow-hidden rounded-2xl mb-4 h-[250px] relative">
+                    <img src={pick.img} alt={pick.name} className="w-full h-full object-cover shadow-inner transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-dark/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay pointer-events-none"></div>
                   </div>
-                  <div 
-                    className="w-full md:w-3/5 p-6 md:p-10 flex flex-col justify-center text-left"
-                    onClick={() => setSelectedDish(pick)}
-                  >
-                    <span className="inline-block self-start px-3 py-1 bg-primary text-cream rounded-full font-heading font-extrabold uppercase text-[10px] md:text-xs mb-3 tracking-wider shadow-sm">
-                      {pick.badge}
-                    </span>
-                    <h3 className="font-heading font-black text-3xl md:text-5xl mb-4 leading-none tracking-tight">{pick.name}</h3>
-                    <p className="font-medium text-base md:text-lg text-dark/75 leading-relaxed">{pick.desc}</p>
-                  </div>
-                </ScrollStackItem>
-              ))}
-            </ScrollStack>
+                  <h3 className="text-dark font-heading font-bold text-center text-xl mb-2 leading-tight drop-shadow-sm">{pick.name}</h3>
+                </div>
+              )}
+            />
           </div>
 
           <div className="text-center pt-4 px-4 relative z-20">
