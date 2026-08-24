@@ -338,7 +338,7 @@ export function About() {
           <div className="flex flex-col items-center justify-center pt-12 pb-16 overflow-hidden">
             <BounceCards
               className="custom-bounceCards scale-75 sm:scale-100"
-              images={favoritePicks.map(pick => pick.img)}
+              items={favoritePicks}
               containerWidth={500}
               containerHeight={300}
               animationDelay={0.2}

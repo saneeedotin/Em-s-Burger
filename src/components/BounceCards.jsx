@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import './BounceCards.css';
+import PixelTransition from './PixelTransition';
 
 export default function BounceCards({
   className = '',
-  images = [],
+  items = [],
   containerWidth = 400,
   containerHeight = 400,
   animationDelay = 0.5,
@@ -65,7 +66,7 @@ export default function BounceCards({
 
     const q = gsap.utils.selector(containerRef);
 
-    images.forEach((_, i) => {
+    items.forEach((_, i) => {
       const target = q(`.card-${i}`);
       gsap.killTweensOf(target);
 
@@ -102,7 +103,7 @@ export default function BounceCards({
 
     const q = gsap.utils.selector(containerRef);
 
-    images.forEach((_, i) => {
+    items.forEach((_, i) => {
       const target = q(`.card-${i}`);
       gsap.killTweensOf(target);
       const baseTransform = transformStyles[i] || 'none';
@@ -125,21 +126,54 @@ export default function BounceCards({
         height: containerHeight
       }}
     >
-      {images.map((src, idx) => (
-        <div
-          key={idx}
-          className={`card card-${idx}`}
-          style={{
-            transform: transformStyles[idx] ?? 'none',
-            cursor: onClickItem ? 'pointer' : 'default'
-          }}
-          onMouseEnter={() => pushSiblings(idx)}
-          onMouseLeave={resetSiblings}
-          onClick={() => onClickItem && onClickItem(idx)}
-        >
-          <img className="image" src={src} alt={`card-${idx}`} />
-        </div>
-      ))}
+      {items.map((item, idx) => {
+        // Fallback in case items are just strings (for backward compatibility)
+        const src = typeof item === 'string' ? item : item.img;
+        
+        return (
+          <div
+            key={idx}
+            className={`card card-${idx}`}
+            style={{
+              transform: transformStyles[idx] ?? 'none',
+              cursor: onClickItem ? 'pointer' : 'default',
+              borderRadius: '20px',
+              border: 'none',
+            }}
+            onMouseEnter={() => pushSiblings(idx)}
+            onMouseLeave={resetSiblings}
+            onClick={() => onClickItem && onClickItem(idx)}
+          >
+            <PixelTransition
+              firstContent={
+                <img
+                  className="image"
+                  src={src}
+                  alt={`card-${idx}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "15px" }}
+                />
+              }
+              secondContent={
+                typeof item === 'object' ? (
+                  <div className="w-full h-full bg-dark text-cream p-4 flex flex-col justify-center items-center text-center rounded-[15px] border-4 border-primary">
+                    <h3 className="font-heading font-black text-xl mb-2 text-primary leading-tight">{item.name}</h3>
+                    <p className="text-xs font-medium opacity-90 line-clamp-4">{item.text}</p>
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-dark flex items-center justify-center rounded-[15px]">
+                    <span className="text-cream font-bold">EM's Burger</span>
+                  </div>
+                )
+              }
+              gridSize={12}
+              pixelColor="#E23E3E"
+              animationStepDuration={0.4}
+              aspectRatio="100%"
+              style={{ width: '100%', height: '100%', border: 'none', borderRadius: '15px' }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
