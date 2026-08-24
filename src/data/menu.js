@@ -351,7 +351,7 @@ export const MENU_ITEMS = [
     isSignature: false,
     description: "Refreshing cold fruit beverage",
     price: 239,
-    image: "https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=800&q=80"
   },
   {
     id: "choco-blast",
@@ -385,7 +385,7 @@ export const MENU_ITEMS = [
     isSignature: false,
     description: "Alphonso mango pulp blended iced drink",
     price: 249,
-    image: "https://images.unsplash.com/photo-1623065422902-30a2d299bcc4?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=800&q=80"
   },
   {
     id: "vanilla-storm",
@@ -396,7 +396,7 @@ export const MENU_ITEMS = [
     isSignature: false,
     description: "Classic creamy vanilla bean shake",
     price: 209,
-    image: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1623065422902-30a2d299bcc4?auto=format&fit=crop&w=800&q=80"
   },
   {
     id: "coffee-kick",
