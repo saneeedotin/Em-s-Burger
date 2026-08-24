@@ -272,6 +272,7 @@ export function About() {
                 dim={1}
                 fade={0}
                 lift={40}
+                radius={100}
               />
             </div>
           </div>
