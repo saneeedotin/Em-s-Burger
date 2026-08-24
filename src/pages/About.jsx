@@ -256,7 +256,7 @@ export function About() {
 
           {/* Drifting Wall of Burgers on Right */}
           <div className="lg:col-span-5 relative flex justify-center items-center h-[350px] md:h-[450px]">
-            <div className="absolute inset-0 rounded-[40px] md:rounded-[60px] overflow-hidden border-[6px] border-cream/10 shadow-2xl bg-dark/20 transform rotate-2 hover:rotate-0 transition-transform duration-700">
+            <div className="absolute inset-0 overflow-hidden pointer-events-auto">
               <DriftWall
                 items={driftItems}
                 columns={4}
@@ -268,8 +268,9 @@ export function About() {
                 perspective={1000}
                 speed={30}
                 direction="up"
-                overlayColor="#E23E3E" // Primary red tint
-                dim={0.65}
+                overlayColor="transparent"
+                dim={1}
+                fade={0}
                 lift={40}
               />
             </div>
