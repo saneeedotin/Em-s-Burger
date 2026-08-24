@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Link, useNavigate } from 'react-router-dom';
@@ -169,22 +169,7 @@ export function About() {
         '-=0.45'
       );
 
-      tl.fromTo(
-        '.anim-floating-img',
-        { scale: 0.7, opacity: 0, rotate: -10 },
-        { scale: 1, opacity: 1, rotate: 0, duration: 0.7, ease: 'back.out(1.4)', stagger: 0.1 },
-        '-=0.35'
-      ).add(() => {
-        // Continuous floating animation after initial entrance
-        gsap.to('.anim-floating-img', {
-          y: -15,
-          duration: 2.5,
-          yoyo: true,
-          repeat: -1,
-          ease: 'sine.inOut',
-          stagger: 0.4
-        });
-      });
+      // (Removed anim-floating-img since we replaced it with DriftWall)
 
       // Card 2 (Dark Narrative section) slides down from above over Card 1
       tl.fromTo(
