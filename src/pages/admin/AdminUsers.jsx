@@ -118,7 +118,7 @@ export function AdminUsers() {
                           <div className={`font-medium ${user.isBanned ? 'text-red-600 line-through' : 'text-dark'}`}>{user.name}</div>
                           {(user.numeric_id || user.hash_id) && (
                             <span className="font-mono bg-dark/5 px-1.5 py-0.5 rounded text-[10px] text-dark/70 font-bold tracking-wider">
-                              EM{user.numeric_id || user.hash_id?.replace('#', '')}
+                              EM{String(user.numeric_id || user.hash_id?.replace('#', '')).padStart(4, '0').slice(-4)}
                             </span>
                           )}
                           {user.isBanned && (

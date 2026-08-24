@@ -92,7 +92,7 @@ export function AdminLoyalty() {
                     <h3 className="font-bold text-lg text-dark">{name}</h3>
                     {(user.numeric_id || user.hash_id) && (
                       <span className="inline-flex items-center gap-1 bg-dark/5 px-2 py-0.5 rounded text-xs font-mono font-bold text-dark/70">
-                        EM{user.numeric_id || user.hash_id?.replace('#', '')}
+                        EM{String(user.numeric_id || user.hash_id?.replace('#', '')).padStart(4, '0').slice(-4)}
                       </span>
                     )}
                   </div>

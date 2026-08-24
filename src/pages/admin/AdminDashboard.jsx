@@ -169,7 +169,7 @@ export function AdminDashboard() {
                           {(user.numeric_id || user.hash_id) && (
                             <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-lg font-mono text-sm font-bold">
                               <Hash size={12} />
-                              EM{user.numeric_id || user.hash_id?.replace('#', '')}
+                              EM{String(user.numeric_id || user.hash_id?.replace('#', '')).padStart(4, '0').slice(-4)}
                             </span>
                           )}
                         </div>
@@ -233,7 +233,7 @@ export function AdminDashboard() {
                     {(selectedUser.numeric_id || selectedUser.hash_id) && (
                       <span className="inline-flex items-center gap-1 bg-dark text-cream px-2 py-0.5 rounded-md font-mono text-xs font-bold">
                         <Hash size={10} />
-                        EM{selectedUser.numeric_id || selectedUser.hash_id?.replace('#', '')}
+                        EM{String(selectedUser.numeric_id || selectedUser.hash_id?.replace('#', '')).padStart(4, '0').slice(-4)}
                       </span>
                     )}
                     {selectedUser.isBanned && (

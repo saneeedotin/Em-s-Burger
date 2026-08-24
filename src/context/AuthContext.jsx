@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
       });
     } catch (e) {
       console.error('Failed to generate numeric ID:', e);
-      numericId = Math.floor(100000 + Math.random() * 900000);
+      numericId = Math.floor(1000 + Math.random() * 9000); // 4-digit fallback
     }
     return numericId;
   };
