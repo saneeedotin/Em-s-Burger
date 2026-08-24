@@ -173,7 +173,17 @@ export function About() {
         { scale: 0.7, opacity: 0, rotate: -10 },
         { scale: 1, opacity: 1, rotate: 0, duration: 0.7, ease: 'back.out(1.4)', stagger: 0.1 },
         '-=0.35'
-      );
+      ).add(() => {
+        // Continuous floating animation after initial entrance
+        gsap.to('.anim-floating-img', {
+          y: -15,
+          duration: 2.5,
+          yoyo: true,
+          repeat: -1,
+          ease: 'sine.inOut',
+          stagger: 0.4
+        });
+      });
 
       // Card 2 (Dark Narrative section) slides down from above over Card 1
       tl.fromTo(
@@ -250,15 +260,21 @@ export function About() {
           </div>
 
           {/* Floating Character / Food Graphics on Right */}
-          <div className="lg:col-span-5 relative flex justify-center items-center h-[300px]">
-            <div className="anim-floating-img absolute w-48 h-48 rounded-full overflow-hidden border-4 border-cream shadow-2xl z-20 left-10 transform -rotate-12 hover:scale-105 transition-transform">
-              <img src="/assets/Pull me up.png" alt="Chef craft" className="w-full h-full object-cover" />
-            </div>
-            <div className="anim-floating-img absolute w-36 h-36 rounded-full overflow-hidden border-4 border-cream shadow-xl z-10 right-10 top-5 transform rotate-12 hover:scale-105 transition-transform">
-              <img src="/assets/Destroyed Fries.png" alt="Sides craft" className="w-full h-full object-cover" />
-            </div>
-            <div className="anim-floating-img absolute w-28 h-28 rounded-full overflow-hidden border-4 border-cream shadow-lg z-0 bottom-5 right-20 transform -rotate-6 hover:scale-105 transition-transform">
-              <img src="/assets/THECHA BURGER.png" alt="Spicy craft" className="w-full h-full object-cover" />
+          <div className="lg:col-span-5 relative flex justify-center items-center h-[300px] md:h-[400px]">
+            {/* Clustered container ensures they don't drift apart on large screens */}
+            <div className="relative w-[320px] h-[320px] md:w-[380px] md:h-[380px]">
+              {/* Main Burger - Center Left */}
+              <div className="anim-floating-img absolute w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-[6px] border-cream shadow-2xl z-20 left-0 top-1/2 -translate-y-1/2 transform -rotate-6 hover:scale-105 transition-transform duration-300">
+                <img src="/assets/Pull me up.png" alt="Chef craft" className="w-full h-full object-cover" />
+              </div>
+              {/* Top Right Fries */}
+              <div className="anim-floating-img absolute w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-cream shadow-xl z-10 right-0 top-2 md:top-4 transform rotate-12 hover:scale-105 transition-transform duration-300">
+                <img src="/assets/Destroyed Fries.png" alt="Sides craft" className="w-full h-full object-cover" />
+              </div>
+              {/* Bottom Right Thecha */}
+              <div className="anim-floating-img absolute w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-cream shadow-lg z-30 right-4 md:right-8 bottom-4 md:bottom-8 transform -rotate-12 hover:scale-105 transition-transform duration-300">
+                <img src="/assets/THECHA BURGER.png" alt="Spicy craft" className="w-full h-full object-cover bg-accent/20" />
+              </div>
             </div>
           </div>
 
