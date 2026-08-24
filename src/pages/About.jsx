@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight } from 'lucide-react';
 import BounceCards from '../components/BounceCards';
+import ScrollExpand from '../components/ScrollExpand';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../config/firebase';
 import { collection, getDocs, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -318,76 +319,42 @@ export function About() {
         </div>
       </section>
 
-      {/* SECTION 3: Selection Panel's Favourite Picks (Mustard Yellow Background) */}
-      <section className="anim-card-3 relative bg-accent text-dark pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-30 shadow-2xl overflow-hidden">
-        
-        {/* Decorative Background Typography */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-[0.06] overflow-hidden select-none">
-          <div className="whitespace-nowrap font-heading font-black text-[12vw] sm:text-[10vw] leading-[0.8] tracking-tighter -ml-20 transform -rotate-3">
-            FAVOURITE PICKS FAVOURITE PICKS FAVOURITE PICKS
-          </div>
-          <div className="whitespace-nowrap font-heading font-black text-[12vw] sm:text-[10vw] leading-[0.8] tracking-tighter ml-20 transform -rotate-3 mt-8 text-dark">
-            SIGNATURES SIGNATURES SIGNATURES SIGNATURES
-          </div>
-          <div className="whitespace-nowrap font-heading font-black text-[12vw] sm:text-[10vw] leading-[0.8] tracking-tighter -ml-32 transform -rotate-3 mt-8">
-            CHEF'S CHOICE CHEF'S CHOICE CHEF'S CHOICE
-          </div>
-        </div>
-
-        <div className="relative max-w-7xl mx-auto space-y-12 z-10">
-          
-          <div className="text-center space-y-3">
-            <span className="inline-block px-3 py-1 rounded-full bg-dark/10 text-dark font-heading font-extrabold text-xs uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 inline mr-1" /> Favourite Picks
-            </span>
-            <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight">
-              Our selection panel's favourite picks
-            </h2>
-            <p className="text-dark/80 max-w-xl mx-auto font-medium text-sm sm:text-base">
-              Click on any pick below to reveal the behind-the-scenes story and chef's inspiration.
-            </p>
-          </div>
-
-          {/* BounceCards Stack Layout */}
-          <div className="flex flex-col items-center justify-center pt-12 pb-16 overflow-hidden">
-            <BounceCards
-              className="custom-bounceCards scale-[0.55] sm:scale-75 md:scale-100"
-              items={favoritePicks}
-              containerWidth={700}
-              containerHeight={340}
-              animationDelay={0.2}
-              animationStagger={0.08}
-              easeType="elastic.out(1, 0.8)"
-              transformStyles={[
-                "rotate(-18deg) translate(-280px) translateY(20px)",
-                "rotate(-10deg) translate(-160px) translateY(5px)",
-                "rotate(-4deg) translate(-55px)",
-                "rotate(4deg) translate(55px)",
-                "rotate(10deg) translate(160px) translateY(5px)",
-                "rotate(18deg) translate(280px) translateY(20px)"
-              ]}
-              enableHover={true}
-              onClickItem={(idx) => setSelectedDish(favoritePicks[idx])}
-            />
-            
-            <div className="mt-16 text-center animate-pulse">
-              <span className="inline-flex items-center gap-2 text-primary font-heading font-extrabold text-sm uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full">
-                <Info className="w-4 h-4" />
-                Hover & Click A Card To View Its Story
+      {/* SECTION 3: Selection Panel's Favourite Picks (ScrollExpand Layout) */}
+      <section className="anim-card-3 relative bg-accent text-dark -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-30 shadow-2xl" style={{ borderTop: '4px solid var(--color-primary)' }}>
+        <ScrollExpand
+          src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80"
+          alt="Favourite Picks Background"
+          title="FAVOURITE PICKS"
+          scrollHint="Scroll to discover"
+          useWindowScroll
+        >
+          <div className="w-full max-w-5xl mx-auto space-y-6 pt-12 px-4">
+            <div className="text-center space-y-2 mb-8">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cream/20 text-cream font-heading font-extrabold text-xs uppercase tracking-wider backdrop-blur-sm border border-cream/30 shadow-lg">
+                <Sparkles className="w-3.5 h-3.5" /> Chef's Choices
               </span>
+              <p className="text-cream/90 max-w-xl mx-auto font-medium text-sm text-shadow-sm">
+                Click on any pick below to reveal the behind-the-scenes story and chef's inspiration.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+              {favoritePicks.map((pick, idx) => (
+                <div 
+                  key={idx} 
+                  className="bg-dark/40 backdrop-blur-md rounded-2xl p-2 cursor-pointer hover:bg-dark/60 transition-all hover:scale-105 border border-cream/20 shadow-xl group"
+                  onClick={() => setSelectedDish(pick)}
+                >
+                  <div className="overflow-hidden rounded-xl mb-3 aspect-square relative">
+                    <img src={pick.img} alt={pick.name} className="w-full h-full object-cover shadow-inner transition-transform duration-500 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay"></div>
+                  </div>
+                  <h3 className="text-cream font-heading font-bold text-center text-sm md:text-base mb-1 leading-tight drop-shadow-md">{pick.name}</h3>
+                </div>
+              ))}
             </div>
           </div>
-
-          <div className="text-center pt-4">
-            <Link
-              to="/menu"
-              className="inline-flex items-center gap-2 bg-dark hover:bg-dark/90 text-cream font-heading font-bold text-lg px-8 py-4 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
-            >
-              <span>Explore The Full Menu</span>
-            </Link>
-          </div>
-
-        </div>
+        </ScrollExpand>
       </section>
 
       {/* SECTION 4: Corkboard Reviews */}
