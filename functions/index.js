@@ -17,10 +17,10 @@ exports.onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => 
   // Example backend logic: If order has a total, give them loyalty points
   if (orderData.user_id && orderData.total_amount) {
     const pointsEarned = Math.floor(orderData.total_amount * 0.1); // 10% back as points
-    
+
     // We update loyalty in the background
-    const userRef = admin.firestore().collection('users').doc(orderData.user_id);
-    
+    const userRef = admin.firestore().collection("users").doc(orderData.user_id);
+
     try {
       await admin.firestore().runTransaction(async (t) => {
         const userDoc = await t.get(userRef);
@@ -45,23 +45,23 @@ exports.onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => 
 exports.addAdminRole = onCall(async (request) => {
   // 1. Check if requester is an admin (Security)
   if (!request.auth || !request.auth.token.admin) {
-    throw new HttpsError('permission-denied', 'Only admins can add other admins.');
+    throw new HttpsError("permission-denied", "Only admins can add other admins.");
   }
 
   const { email } = request.data;
   if (!email) {
-    throw new HttpsError('invalid-argument', 'Email is required.');
+    throw new HttpsError("invalid-argument", "Email is required.");
   }
 
   try {
     // 2. Get user by email
     const user = await admin.auth().getUserByEmail(email);
-    
+
     // 3. Set admin custom claim
     await admin.auth().setCustomUserClaims(user.uid, { admin: true });
-    
+
     return { message: `Success! ${email} has been made an admin.` };
   } catch (error) {
-    throw new HttpsError('internal', error.message);
+    throw new HttpsError("internal", error.message);
   }
 });
