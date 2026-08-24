@@ -444,7 +444,7 @@ export const MENU_ITEMS = [
     isSignature: false,
     description: "Classic creamy comfort with a perfect touch of sweetness",
     price: 219,
-    image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&q=80"
   },
   {
     id: "white-chocolate",
@@ -455,7 +455,7 @@ export const MENU_ITEMS = [
     isSignature: false,
     description: "Silky and sweet with the buttery richness of white chocolate",
     price: 219,
-    image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=800&q=80"
+    image: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=800&q=80"
   },
   {
     id: "cappuccino",
