@@ -5,8 +5,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight } from 'lucide-react';
 import BounceCards from '../components/BounceCards';
 import LogoLoop from '../components/LogoLoop';
-import DriftWall from '../components/DriftWall';
-import ScrollStack, { ScrollStackItem } from '../components/ScrollStack';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../config/firebase';
 import { collection, getDocs, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -170,7 +168,22 @@ export function About() {
         '-=0.45'
       );
 
-      // (Removed anim-floating-img since we replaced it with DriftWall)
+      tl.fromTo(
+        '.anim-floating-img',
+        { scale: 0.7, opacity: 0, rotate: -10 },
+        { scale: 1, opacity: 1, rotate: 0, duration: 0.7, ease: 'back.out(1.4)', stagger: 0.1 },
+        '-=0.35'
+      ).add(() => {
+        // Continuous floating animation after initial entrance
+        gsap.to('.anim-floating-img', {
+          y: -15,
+          duration: 2.5,
+          yoyo: true,
+          repeat: -1,
+          ease: 'sine.inOut',
+          stagger: 0.4
+        });
+      });
 
       // Card 2 (Dark Narrative section) slides down from above over Card 1
       tl.fromTo(
@@ -255,28 +268,22 @@ export function About() {
             </p>
           </div>
 
-          {/* Stack of Burgers on Right */}
-          <div className="lg:col-span-5 relative flex justify-center items-center h-[350px] md:h-[500px]">
-            <div className="absolute inset-0 overflow-hidden pointer-events-auto bg-dark/10 rounded-[40px] md:rounded-[60px] border-[6px] border-cream/10 shadow-2xl">
-              <ScrollStack 
-                itemDistance={80} 
-                stackPosition="20%" 
-                scaleEndPosition="5%" 
-                baseScale={0.8} 
-                blurAmount={1.2}
-              >
-                {driftItems.map((item, idx) => (
-                  <ScrollStackItem 
-                    key={idx} 
-                    itemClassName="!p-0 w-full aspect-square md:aspect-auto md:h-80 rounded-[30px] border-4 border-cream shadow-xl overflow-hidden bg-cream relative"
-                  >
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                    <div className="absolute bottom-0 left-0 w-full p-3 bg-dark/80 backdrop-blur text-cream font-heading font-bold text-center text-sm tracking-wider uppercase">
-                      {item.title}
-                    </div>
-                  </ScrollStackItem>
-                ))}
-              </ScrollStack>
+          {/* Floating Character / Food Graphics on Right */}
+          <div className="lg:col-span-5 relative flex justify-center items-center h-[300px] md:h-[400px]">
+            {/* Clustered container ensures they don't drift apart on large screens */}
+            <div className="relative w-[320px] h-[320px] md:w-[380px] md:h-[380px]">
+              {/* Main Burger - Center Left */}
+              <div className="anim-floating-img absolute w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-[6px] border-cream shadow-2xl z-20 left-0 top-1/2 -translate-y-1/2 transform -rotate-6 hover:scale-105 transition-transform duration-300">
+                <img src="/assets/Pull me up.png" alt="Chef craft" className="w-full h-full object-cover" />
+              </div>
+              {/* Top Right Fries */}
+              <div className="anim-floating-img absolute w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-cream shadow-xl z-10 right-0 top-2 md:top-4 transform rotate-12 hover:scale-105 transition-transform duration-300">
+                <img src="/assets/Destroyed Fries.png" alt="Sides craft" className="w-full h-full object-cover" />
+              </div>
+              {/* Bottom Right Thecha */}
+              <div className="anim-floating-img absolute w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-cream shadow-lg z-30 right-4 md:right-8 bottom-4 md:bottom-8 transform -rotate-12 hover:scale-105 transition-transform duration-300">
+                <img src="/assets/THECHA BURGER.png" alt="Spicy craft" className="w-full h-full object-cover bg-accent/20" />
+              </div>
             </div>
           </div>
 
