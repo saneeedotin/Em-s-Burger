@@ -319,8 +319,22 @@ export function About() {
       </section>
 
       {/* SECTION 3: Selection Panel's Favourite Picks (Mustard Yellow Background) */}
-      <section className="anim-card-3 relative bg-accent text-dark pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-30 shadow-2xl">
-        <div className="max-w-7xl mx-auto space-y-12">
+      <section className="anim-card-3 relative bg-accent text-dark pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-30 shadow-2xl overflow-hidden">
+        
+        {/* Decorative Background Typography */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-[0.06] overflow-hidden select-none">
+          <div className="whitespace-nowrap font-heading font-black text-[12vw] sm:text-[10vw] leading-[0.8] tracking-tighter -ml-20 transform -rotate-3">
+            FAVOURITE PICKS FAVOURITE PICKS FAVOURITE PICKS
+          </div>
+          <div className="whitespace-nowrap font-heading font-black text-[12vw] sm:text-[10vw] leading-[0.8] tracking-tighter ml-20 transform -rotate-3 mt-8 text-dark">
+            SIGNATURES SIGNATURES SIGNATURES SIGNATURES
+          </div>
+          <div className="whitespace-nowrap font-heading font-black text-[12vw] sm:text-[10vw] leading-[0.8] tracking-tighter -ml-32 transform -rotate-3 mt-8">
+            CHEF'S CHOICE CHEF'S CHOICE CHEF'S CHOICE
+          </div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto space-y-12 z-10">
           
           <div className="text-center space-y-3">
             <span className="inline-block px-3 py-1 rounded-full bg-dark/10 text-dark font-heading font-extrabold text-xs uppercase tracking-wider">
@@ -337,20 +351,20 @@ export function About() {
           {/* BounceCards Stack Layout */}
           <div className="flex flex-col items-center justify-center pt-12 pb-16 overflow-hidden">
             <BounceCards
-              className="custom-bounceCards scale-75 sm:scale-100"
+              className="custom-bounceCards scale-[0.55] sm:scale-75 md:scale-100"
               items={favoritePicks}
-              containerWidth={500}
-              containerHeight={300}
+              containerWidth={700}
+              containerHeight={340}
               animationDelay={0.2}
               animationStagger={0.08}
               easeType="elastic.out(1, 0.8)"
               transformStyles={[
-                "rotate(-15deg) translate(-220px)",
-                "rotate(-9deg) translate(-130px)",
-                "rotate(-3deg) translate(-40px)",
-                "rotate(3deg) translate(40px)",
-                "rotate(9deg) translate(130px)",
-                "rotate(15deg) translate(220px)"
+                "rotate(-18deg) translate(-280px) translateY(20px)",
+                "rotate(-10deg) translate(-160px) translateY(5px)",
+                "rotate(-4deg) translate(-55px)",
+                "rotate(4deg) translate(55px)",
+                "rotate(10deg) translate(160px) translateY(5px)",
+                "rotate(18deg) translate(280px) translateY(20px)"
               ]}
               enableHover={true}
               onClickItem={(idx) => setSelectedDish(favoritePicks[idx])}
