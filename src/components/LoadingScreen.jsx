@@ -6,13 +6,21 @@ export function LoadingScreen() {
   const [isDone, setIsDone] = useState(false);
 
   const handleVideoEnd = () => {
-    // When the video finishes playing, slide the whole screen up to reveal the app
-    gsap.to(containerRef.current, {
-      yPercent: -100,
+    const tl = gsap.timeline({ onComplete: () => setIsDone(true) });
+    
+    // Subtle scale down of the video right before wiping
+    tl.to('.loading-video', {
+      scale: 0.9,
+      opacity: 0.8,
+      duration: 0.6,
+      ease: 'power2.inOut'
+    })
+    // Premium wipe-up effect using clipPath
+    .to(containerRef.current, {
+      clipPath: 'inset(0 0 100% 0)',
       duration: 1.2,
-      ease: 'power4.inOut',
-      onComplete: () => setIsDone(true)
-    });
+      ease: 'expo.inOut',
+    }, '-=0.2');
   };
 
   if (isDone) return null;
@@ -23,7 +31,7 @@ export function LoadingScreen() {
       className="fixed inset-0 z-[9999] bg-primary flex flex-col items-center justify-center overflow-hidden"
     >
       <video 
-        className="w-full h-full object-cover"
+        className="loading-video w-full h-full object-contain"
         autoPlay 
         muted 
         playsInline 

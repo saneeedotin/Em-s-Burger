@@ -78,7 +78,7 @@ export function App() {
               </Route>
             </Routes>
           ) : (
-            <div className="flex flex-col min-h-screen bg-cream text-dark font-body">
+            <div className="flex flex-col min-h-screen bg-cream doodles-red text-dark font-body">
               <Navbar />
 
               <main className="flex-grow">

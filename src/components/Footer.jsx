@@ -1,151 +1,157 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Clock, Phone, Instagram, ExternalLink, QrCode, Heart } from 'lucide-react';
-import { Logo } from './Logo';
+import { Link, useLocation } from 'react-router-dom';
+import { Instagram, MapPin, ExternalLink, QrCode } from 'lucide-react';
 
 export function Footer() {
+  const location = useLocation();
+  const path = location.pathname;
+
+  let wrapperBg = 'bg-cream doodles-red';
+  let wrapperTexture = null;
+
+  if (path === '/') {
+    wrapperBg = 'bg-primary doodles-cream';
+  } else if (path === '/contact') {
+    wrapperBg = 'bg-accent';
+  } else if (path === '/about') {
+    wrapperBg = 'bg-dark';
+    wrapperTexture = (
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.3) 2px, transparent 2px)', backgroundSize: '16px 16px' }} />
+    );
+  } else if (path === '/gallery') {
+    wrapperBg = 'bg-dark';
+  }
+
+  const isRedPage = wrapperBg === 'bg-primary';
+
+  const theme = isRedPage ? {
+    bg: 'bg-cream doodles-red',
+    textMain: 'text-primary',
+    textMuted: 'text-primary/70',
+    linkMuted: 'text-dark/90',
+    linkHover: 'hover:text-primary',
+    border: 'border-primary/40',
+    socialHoverBg: 'hover:bg-primary',
+    socialHoverText: 'hover:text-cream',
+    socialHoverBorder: 'hover:border-primary',
+    logo: 'text-primary'
+  } : {
+    bg: 'bg-primary doodles-cream',
+    textMain: 'text-cream',
+    textMuted: 'text-cream/70',
+    linkMuted: 'text-cream/90',
+    linkHover: 'hover:text-dark',
+    border: 'border-cream/40',
+    socialHoverBg: 'hover:bg-cream',
+    socialHoverText: 'hover:text-primary',
+    socialHoverBorder: 'hover:border-cream',
+    logo: 'text-cream'
+  };
+
   return (
-    <footer className="bg-primary text-cream pt-16 pb-12 relative overflow-hidden mt-[-1px]">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary-hover/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+    <div className={`-mt-8 md:-mt-12 relative z-[45] w-full ${wrapperBg}`}>
+      {wrapperTexture}
+      <footer className={`${theme.bg} rounded-t-[10vw] md:rounded-t-none md:rounded-tl-[8vw] pt-16 md:pt-24 lg:pt-32 px-6 sm:px-12 lg:px-24 pb-8 md:pb-0 flex flex-col overflow-hidden relative shadow-[0_-10px_40px_rgba(0,0,0,0.1)]`}>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-cream/20">
-          
-          {/* Column 1: Brand Info */}
-          <div className="space-y-4">
-            <Logo variant="default" size="large" />
-            <p className="text-cream/90 text-sm leading-relaxed max-w-xs font-medium">
-              Chembur's home for juicy stacked UFO burgers, pull-me-up cheese cascades, and destroyed fries. Classy, vibrant & cute vibes only.
+        {/* Top Row: Headline, Copyright, Nav, Support */}
+        <div className="flex flex-col lg:flex-row justify-between gap-8 lg:gap-12 xl:gap-24 mb-12">
+
+          {/* Column 1: Headline & Copyright */}
+          <div className="flex flex-col max-w-sm lg:w-1/3">
+            <h3 className={`font-heading font-extrabold text-2xl sm:text-3xl ${theme.textMain} leading-tight mb-4 tracking-tight`}>
+              Handcrafted in Chembur with zero shortcuts.
+            </h3>
+            <p className={`text-xs font-medium ${theme.textMuted} mt-4 lg:mt-12`}>
+              © {new Date().getFullYear()} EM'S BURGERS / Site & Brand by <a href="https://www.instagram.com/saneeedotin/" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Saneee.in</a>
             </p>
-            <div className="flex items-center gap-3 pt-2">
-              <a
-                href="https://www.instagram.com/emschembur/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="w-10 h-10 rounded-full bg-cream/10 hover:bg-accent hover:text-dark flex items-center justify-center transition-all duration-300 transform hover:scale-110"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="https://www.zomato.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-full bg-cream/10 hover:bg-cream hover:text-primary text-xs font-bold font-heading flex items-center gap-1 transition-all"
-              >
-                <span>Zomato</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-              <a
-                href="https://www.swiggy.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-full bg-cream/10 hover:bg-cream hover:text-primary text-xs font-bold font-heading flex items-center gap-1 transition-all"
-              >
-                <span>Swiggy</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
           </div>
 
-          {/* Column 2: Quick Links */}
-          <div>
-            <h3 className="font-heading font-bold text-lg text-cream mb-4 flex items-center gap-2">
-              <span>Explore</span>
-              <div className="h-0.5 w-8 bg-accent rounded-full" />
-            </h3>
-            <ul className="space-y-2.5 font-medium text-sm">
-              <li>
-                <Link to="/" className="text-cream/80 hover:text-accent transition-colors">
-                  Home & Signature Picks
-                </Link>
-              </li>
-              <li>
-                <Link to="/menu" className="text-cream/80 hover:text-accent transition-colors">
-                  Full Cafe Menu
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-cream/80 hover:text-accent transition-colors">
-                  Our Story & Ambience
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-cream/80 hover:text-accent transition-colors">
-                  Contact & Directions
-                </Link>
-              </li>
-              <li>
-                <Link to="/loyalty" className="text-accent hover:underline font-bold flex items-center gap-1.5">
-                  <QrCode className="w-4 h-4" />
-                  <span>Loyalty Punch Card (10th Free)</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3: Location & Hours */}
-          <div className="space-y-4">
-            <h3 className="font-heading font-bold text-lg text-cream mb-4 flex items-center gap-2">
-              <span>Visit Us</span>
-              <div className="h-0.5 w-8 bg-accent rounded-full" />
-            </h3>
-            
-            <div className="flex items-start gap-3 text-sm text-cream/90">
-              <MapPin className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-              <span>
-                20, Acharya Udyog Complex, Koliwada, Borla Road, Chembur Camp, Mumbai - 400074
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 text-sm text-cream/90">
-              <Clock className="w-5 h-5 text-accent shrink-0" />
-              <span>Open Daily: 12:00 PM – 11:00 PM</span>
-            </div>
-
-            <div className="flex items-center gap-3 text-sm text-cream/90">
-              <Phone className="w-5 h-5 text-accent shrink-0" />
-              <a href="tel:+919820098200" className="hover:text-accent transition-colors font-bold">
-                +91 98200 98200 (Click to call)
-              </a>
-            </div>
-          </div>
-
-          {/* Column 4: Loyalty QR Teaser */}
-          <div className="bg-primary-dark/50 p-5 rounded-3xl border border-cream/15 flex flex-col justify-between">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent text-dark text-xs font-heading font-bold">
-                <QrCode className="w-3.5 h-3.5" />
-                <span>QR Loyalty Special</span>
-              </div>
-              <h4 className="font-heading font-bold text-xl text-cream">
-                Buy 9 Burgers, Get 10th FREE!
+          {/* Column 2: Navigation & Support */}
+          <div className="flex flex-row flex-wrap md:flex-nowrap gap-8 sm:gap-16 lg:w-2/3 justify-between sm:justify-start w-full pr-4 sm:pr-0">
+            <div>
+              <h4 className={`font-heading font-extrabold text-[10px] uppercase tracking-wider mb-4 ${theme.textMain}`}>
+                Navigation
               </h4>
-              <p className="text-xs text-cream/80 leading-snug">
-                Scan the QR code at your dining table to track your digital punch card.
-              </p>
+              <ul className={`space-y-3 text-sm font-medium ${theme.linkMuted}`}>
+                <li><Link to="/" className={`${theme.linkHover} transition-colors`}>Home</Link></li>
+                <li><Link to="/menu" className={`${theme.linkHover} transition-colors`}>Menu</Link></li>
+                <li><Link to="/loyalty" className={`${theme.linkHover} transition-colors`}>Loyalty Program</Link></li>
+                <li><Link to="/about" className={`${theme.linkHover} transition-colors`}>About Us</Link></li>
+                <li><Link to="/contact" className={`${theme.linkHover} transition-colors`}>Contact</Link></li>
+              </ul>
             </div>
 
-            <Link
-              to="/loyalty"
-              className="mt-4 w-full py-2.5 text-center font-heading font-bold text-xs uppercase tracking-wider text-primary bg-cream hover:bg-accent rounded-full transition-colors shadow-sm"
-            >
-              View Punch Card Demo
-            </Link>
+            <div>
+              <h4 className={`font-heading font-extrabold text-[10px] uppercase tracking-wider mb-4 ${theme.textMain}`}>
+                Support
+              </h4>
+              <ul className={`space-y-3 text-sm font-medium ${theme.linkMuted}`}>
+                <li><a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Directions</a></li>
+                <li><a href="tel:+919820098200" className={`${theme.linkHover} transition-colors`}>Call Us</a></li>
+                <li><a href="https://zomato.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Zomato</a></li>
+                <li><a href="https://swiggy.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Swiggy</a></li>
+              </ul>
+            </div>
+
+            {/* Follow Us (Mobile Only) */}
+            <div className="md:hidden flex flex-col">
+              <h4 className={`font-heading font-extrabold text-[10px] uppercase tracking-wider mb-4 ${theme.textMain}`}>
+                Follow Us
+              </h4>
+              <div className="flex flex-col gap-3">
+                <a href="https://instagram.com/emschembur" target="_blank" rel="noopener noreferrer" className={`w-10 h-10 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                  <Instagram className="w-4 h-4" />
+                </a>
+                <a href="https://www.google.com/maps/search/?api=1&query=Em%E2%80%99s+Burger+-+Burgers+built+to+hit,+Shop+no,+20+road,+Wadavli,+Borla,+koliwada,+Chembur,+Mumbai,+Maharashtra+400074" target="_blank" rel="noopener noreferrer" className={`w-10 h-10 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                  <MapPin className="w-4 h-4" />
+                </a>
+                <a href="https://www.zomato.com/mumbai/ems-burgers-chembur/" target="_blank" rel="noopener noreferrer" className={`w-10 h-10 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                  <span className="font-black font-heading text-lg italic mt-0.5">Z</span>
+                </a>
+                <a href="https://www.swiggy.com/city/mumbai/ems-burgers-chembur-rest1281237" target="_blank" rel="noopener noreferrer" className={`w-10 h-10 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                  <span className="font-black font-heading text-lg italic mt-0.5">S</span>
+                </a>
+              </div>
+            </div>
+
           </div>
 
+          {/* Empty spacer for Top Right */}
+          <div className="hidden lg:block lg:w-1/3"></div>
         </div>
 
-        {/* Bottom copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-cream/70">
-          <p>© {new Date().getFullYear()} EM'S BURGERS CHEMBUR. All rights reserved.</p>
-          <p className="flex items-center gap-1">
-            Made with <Heart className="w-3.5 h-3.5 text-accent fill-accent" /> for Chembur Burger Lovers
-          </p>
+        {/* Bottom Row: Social */}
+        <div className="hidden md:flex flex-col justify-end w-full mt-auto relative z-10 pb-8 md:pb-16">
+
+          {/* Bottom Left: Social (Desktop) */}
+          <div className="flex flex-col mt-12 md:mt-0">
+            <h4 className={`font-heading font-extrabold text-[10px] uppercase tracking-wider mb-4 ${theme.textMain}`}>
+              Follow Us
+            </h4>
+            <div className="flex items-center gap-3">
+              <a href="https://instagram.com/emschembur" target="_blank" rel="noopener noreferrer" className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                <Instagram className="w-4 h-4 sm:w-5 sm:h-5" />
+              </a>
+              <a href="https://www.google.com/maps/search/?api=1&query=Em%E2%80%99s+Burger+-+Burgers+built+to+hit,+Shop+no,+20+road,+Wadavli,+Borla,+koliwada,+Chembur,+Mumbai,+Maharashtra+400074" target="_blank" rel="noopener noreferrer" className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
+              </a>
+              <a href="https://www.zomato.com/mumbai/ems-burgers-chembur/" target="_blank" rel="noopener noreferrer" className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                <span className="font-black font-heading text-lg sm:text-xl italic mt-0.5">Z</span>
+              </a>
+              <a href="https://www.swiggy.com/city/mumbai/ems-burgers-chembur-rest1281237" target="_blank" rel="noopener noreferrer" className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border ${theme.border} flex items-center justify-center ${theme.socialHoverBg} ${theme.socialHoverText} ${theme.socialHoverBorder} transition-colors ${theme.textMain}`}>
+                <span className="font-black font-heading text-lg sm:text-xl italic mt-0.5">S</span>
+              </a>
+            </div>
+          </div>
         </div>
-      </div>
-    </footer>
+
+        {/* Massive Logo */}
+        <div className="w-full flex justify-center items-end mt-auto -mb-[4vw] md:absolute md:right-4 lg:right-24 md:bottom-4 lg:bottom-12 md:w-auto md:justify-end select-none pointer-events-none z-0">
+          <h1 className={`font-heading font-black text-[42vw] leading-[0.75] md:text-[22vw] lg:text-[18vw] md:leading-none tracking-tighter ${theme.logo} text-center md:text-right m-0 p-0 drop-shadow-sm opacity-90`}>
+            em's
+          </h1>
+        </div>
+      </footer>
+    </div>
   );
 }

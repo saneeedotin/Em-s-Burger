@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight } from 'lucide-react';
+import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight, Quote, Instagram } from 'lucide-react';
+import { CoverflowCarousel } from '../components/ui/coverflow-carousel';
 import BounceCards from '../components/BounceCards';
 import LogoLoop from '../components/LogoLoop';
 import { useAuth } from '../context/AuthContext';
@@ -153,10 +155,10 @@ export function About() {
         delay: 0.1,
       });
 
-      // Card 1 (Red Hero) slides down from top
+      // Card 1 (Red Hero) slides down from top on load
       tl.fromTo(
         '.anim-card-1',
-        { y: -140, opacity: 0 },
+        { y: -80, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.75 }
       );
 
@@ -185,50 +187,66 @@ export function About() {
         });
       });
 
-      // Card 2 (Dark Narrative section) slides down from above over Card 1
-      tl.fromTo(
+      // --- SCROLL TRIGGERS FOR SUBSEQUENT SECTIONS ---
+
+      // Card 2 (Dark Narrative section)
+      gsap.fromTo(
         '.anim-card-2',
-        { y: -160, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out' },
-        '-=0.35'
+        { y: 100, opacity: 0 },
+        { 
+          y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: '.anim-card-2', start: 'top 85%' }
+        }
       );
 
-      tl.fromTo(
+      gsap.fromTo(
         '.anim-card-2-content',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6 },
-        '-=0.35'
+        { y: 40, opacity: 0 },
+        { 
+          y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', delay: 0.2,
+          scrollTrigger: { trigger: '.anim-card-2', start: 'top 85%' }
+        }
       );
 
-      // Card 3 (Yellow Favourite Picks section) slides down from above over Card 2
-      tl.fromTo(
+      // Card 3 (Yellow Favourite Picks section)
+      gsap.fromTo(
         '.anim-card-3',
-        { y: -160, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out' },
-        '-=0.35'
+        { y: 100, opacity: 0 },
+        { 
+          y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: '.anim-card-3', start: 'top 85%' }
+        }
       );
 
-      tl.fromTo(
-        '.anim-pick-card',
-        { y: 35, opacity: 0, scale: 0.95 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.2)', stagger: 0.08 },
-        '-=0.35'
+      gsap.fromTo(
+        '.anim-pick-card', // note: this class needs to be on the LogoLoop items if not already
+        { y: 40, opacity: 0, scale: 0.95 },
+        { 
+          y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.2)', stagger: 0.1,
+          scrollTrigger: { trigger: '.anim-card-3', start: 'top 75%' }
+        }
       );
 
-      // Card 4 (Corkboard Reviews) slides down from above over Card 3
-      tl.fromTo(
+      // Card 4 (Corkboard Reviews)
+      gsap.fromTo(
         '.anim-card-4',
-        { y: -160, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out' },
-        '-=0.35'
+        { y: 100, opacity: 0 },
+        { 
+          y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: '.anim-card-4', start: 'top 85%' }
+        }
       );
 
-      tl.fromTo(
+      gsap.fromTo(
         '.anim-sticky-note',
-        { y: 50, opacity: 0, rotation: () => Math.random() * 20 - 10, scale: 0.8 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.5)', stagger: 0.1 },
-        '-=0.4'
+        { y: 60, opacity: 0, rotation: () => Math.random() * 20 - 10, scale: 0.8 },
+        { 
+          y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'back.out(1.5)', stagger: 0.1,
+          scrollTrigger: { trigger: '.anim-card-4', start: 'top 75%' }
+        }
       );
+      
+      ScrollTrigger.refresh();
     },
     { scope: storyContainerRef }
   );
@@ -268,21 +286,20 @@ export function About() {
             </p>
           </div>
 
-          {/* Floating Character / Food Graphics on Right */}
-          <div className="lg:col-span-5 relative flex justify-center items-center h-[300px] md:h-[400px]">
-            {/* Clustered container ensures they don't drift apart on large screens */}
-            <div className="relative w-[320px] h-[320px] md:w-[380px] md:h-[380px]">
-              {/* Main Burger - Center Left */}
-              <div className="anim-floating-img absolute w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-[6px] border-cream shadow-2xl z-20 left-0 top-1/2 -translate-y-1/2 transform -rotate-6 hover:scale-105 transition-transform duration-300">
+          {/* Bento Grid Graphics on Right */}
+          <div className="lg:col-span-5 relative h-[300px] md:h-[400px] w-full">
+            <div className="grid grid-cols-2 grid-rows-2 gap-4 h-full w-full">
+              {/* Main Burger - Left Tall */}
+              <div className="anim-floating-img col-span-1 row-span-2 rounded-[2rem] overflow-hidden border-4 border-cream shadow-2xl hover:scale-[1.02] transition-transform duration-300">
                 <img src="/assets/Pull me up.png" alt="Chef craft" className="w-full h-full object-cover" />
               </div>
               {/* Top Right Fries */}
-              <div className="anim-floating-img absolute w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-cream shadow-xl z-10 right-0 top-2 md:top-4 transform rotate-12 hover:scale-105 transition-transform duration-300">
+              <div className="anim-floating-img col-span-1 row-span-1 rounded-[2rem] overflow-hidden border-4 border-cream shadow-xl hover:scale-[1.02] transition-transform duration-300">
                 <img src="/assets/Destroyed Fries.png" alt="Sides craft" className="w-full h-full object-cover" />
               </div>
               {/* Bottom Right Thecha */}
-              <div className="anim-floating-img absolute w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-cream shadow-lg z-30 right-4 md:right-8 bottom-4 md:bottom-8 transform -rotate-12 hover:scale-105 transition-transform duration-300">
-                <img src="/assets/THECHA BURGER.png" alt="Spicy craft" className="w-full h-full object-cover bg-accent/20" />
+              <div className="anim-floating-img col-span-1 row-span-1 rounded-[2rem] overflow-hidden border-4 border-cream shadow-lg hover:scale-[1.02] transition-transform duration-300 bg-accent/20">
+                <img src="/assets/THECHA BURGER.png" alt="Spicy craft" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
@@ -294,20 +311,13 @@ export function About() {
       <section className="anim-card-2 relative bg-dark text-cream pt-24 pb-28 px-4 sm:px-6 lg:px-8 -mt-12 rounded-[60px] md:rounded-[100px] z-20 shadow-xl">
         <div className="anim-card-2-content max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Side: Overlapping Cluster of Oval/Circular Images */}
-          <div className="lg:col-span-5 relative h-[380px] flex items-center justify-center">
-            {/* Main Center Oval Image */}
-            <div className="absolute w-[220px] h-[300px] rounded-[110px] overflow-hidden border-4 border-cream shadow-2xl z-10 transform -rotate-6 hover:rotate-0 transition-transform duration-500">
-              <img src="/assets/Meltdown .png" alt="Burgers Built to Hit" className="w-full h-full object-cover" />
-            </div>
-            {/* Top Left Circle */}
-            <div className="absolute w-36 h-36 rounded-full overflow-hidden border-4 border-cream shadow-xl top-4 left-6 z-20 hover:scale-105 transition-transform">
-              <img src="/assets/Mac and Cheese.png" alt="Deep Fried Mac" className="w-full h-full object-cover" />
-            </div>
-            {/* Bottom Right Circle */}
-            <div className="absolute w-40 h-40 rounded-full overflow-hidden border-4 border-cream shadow-xl bottom-4 right-6 z-20 hover:scale-105 transition-transform">
-              <img src="/assets/The classic cheeseburger.png" alt="Classic burger" className="w-full h-full object-cover" />
-            </div>
+          {/* Left Side: Carousel Component */}
+          <div className="lg:col-span-5 relative h-[380px] w-full mt-4 md:mt-0">
+            <CoverflowCarousel slides={[
+              { src: "/assets/Meltdown .png", alt: "Meltdown", title: "Meltdown", subtitle: "Burgers built to hit" },
+              { src: "/assets/Mac and Cheese.png", alt: "Mac & Cheese", title: "Mac & Cheese", subtitle: "Deep fried perfection" },
+              { src: "/assets/The classic cheeseburger.png", alt: "Classic Burger", title: "Classic Cheese", subtitle: "Simple & perfect" }
+            ]} />
           </div>
 
           {/* Right Side: Narrative Copy */}
@@ -387,7 +397,7 @@ export function About() {
               ariaLabel="Favourite Picks Loop"
               renderItem={(pick) => (
                 <div 
-                  className="bg-cream/40 backdrop-blur-md rounded-3xl p-3 cursor-pointer hover:bg-cream/60 transition-all border-2 border-dark/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] group flex flex-col justify-between"
+                  className="anim-pick-card bg-cream/40 backdrop-blur-md rounded-3xl p-3 cursor-pointer hover:bg-cream/60 transition-all border-2 border-dark/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] group flex flex-col justify-between"
                   style={{ width: '280px', height: '340px' }}
                   onClick={() => setSelectedDish(pick)}
                 >

@@ -89,7 +89,7 @@ export function PhysicalMenuLayout({ isVegOnly, onSelect }) {
           
           {/* FRONT SIDE */}
           <div 
-            className="absolute inset-0 w-full backface-hidden bg-zinc-900 rounded-2xl border-4 border-zinc-800 p-8 sm:p-12 overflow-hidden shadow-2xl flex flex-col"
+            className="absolute inset-0 w-full backface-hidden bg-zinc-900 rounded-2xl border-4 border-zinc-800 p-8 sm:p-12 overflow-y-auto shadow-2xl flex flex-col scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
             style={{ backfaceVisibility: 'hidden' }}
           >
             {/* Background Texture Overlay */}
@@ -117,7 +117,7 @@ export function PhysicalMenuLayout({ isVegOnly, onSelect }) {
 
           {/* BACK SIDE */}
           <div 
-            className="absolute inset-0 w-full backface-hidden bg-zinc-900 rounded-2xl border-4 border-zinc-800 p-8 sm:p-12 overflow-hidden shadow-2xl flex flex-col"
+            className="absolute inset-0 w-full backface-hidden bg-zinc-900 rounded-2xl border-4 border-zinc-800 p-8 sm:p-12 overflow-y-auto shadow-2xl flex flex-col scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
             {/* Background Texture Overlay */}

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -12,11 +12,14 @@ import { TakeAwaySection } from '../components/TakeAwaySection';
 import { Gallery } from '../components/Gallery';
 import { Heart, Sparkles, Utensils, Star, ShieldCheck, MapPin } from 'lucide-react';
 import { useVegMode } from '../context/VegModeContext';
+import { useAuth } from '../context/AuthContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Home() {
+  const { currentUser } = useAuth();
   const { isVegOnly } = useVegMode();
+  const [selectedReview, setSelectedReview] = useState(null);
   const storyRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -31,53 +34,52 @@ export function Home() {
     () => {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-      // Text stagger reveal
-      gsap.from('.story-text > *', {
-        y: 40,
+      // Headline staggered reveal
+      gsap.from('.editorial-headline > span > span', {
+        y: 100,
         opacity: 0,
+        rotate: 5,
         stagger: 0.1,
-        duration: 0.8,
-        ease: 'power3.out',
+        duration: 1.2,
+        ease: 'power4.out',
         scrollTrigger: {
-          trigger: '.story-text',
-          start: 'top 80%',
+          trigger: '.editorial-headline',
+          start: 'top 85%',
         },
       });
 
-      // Image clip-path reveal with parallax
-      const images = gsap.utils.toArray('.story-img-container');
-      images.forEach((container) => {
-        const img = container.querySelector('img');
-        
-        // Clip-path reveal for container
-        gsap.fromTo(container,
-          { clipPath: 'inset(0 0 100% 0)' },
-          {
-            clipPath: 'inset(0 0 0 0)',
-            duration: 1.2,
-            ease: 'power4.inOut',
-            scrollTrigger: {
-              trigger: container,
-              start: 'top 85%',
-            }
-          }
-        );
+      // Free-floating images parallax (different speeds)
+      gsap.to('.editorial-img-1', {
+        y: -150,
+        rotate: -2,
+        ease: 'none',
+        scrollTrigger: { trigger: storyRef.current, start: 'top bottom', end: 'bottom top', scrub: 1 }
+      });
+      gsap.to('.editorial-img-2', {
+        y: -100,
+        rotate: 5,
+        ease: 'none',
+        scrollTrigger: { trigger: storyRef.current, start: 'top bottom', end: 'bottom top', scrub: 1 }
+      });
+      
+      // Floating badges parallax
+      gsap.to('.editorial-badge', {
+        y: -60,
+        ease: 'none',
+        scrollTrigger: { trigger: storyRef.current, start: 'top bottom', end: 'bottom top', scrub: 1.5 }
+      });
 
-        // Subtle Parallax for the image inside
-        gsap.fromTo(img,
-          { y: -30, scale: 1.1 },
-          {
-            y: 30,
-            scale: 1.1,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: container,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: true,
-            }
-          }
-        );
+      // Fade up text and CTA
+      gsap.from('.editorial-text, .editorial-btn', {
+        y: 40,
+        opacity: 0,
+        stagger: 0.15,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.editorial-text',
+          start: 'top 85%',
+        },
       });
     },
     { scope: storyRef }
@@ -110,94 +112,72 @@ export function Home() {
 
         {/* 2. Signature Picks Strip */}
         <SignaturePicksStrip />
+        
+        {!currentUser && (
+          <div className="py-12 sm:py-24">
+            <LoyaltyBanner />
+          </div>
+        )}
 
-        {/* 3. Loyalty Banner Teaser */}
-        <LoyaltyBanner />
-
-        {/* 4. Brand Vibe & Story Block */}
-        <section className="py-24 bg-cream text-dark border-t border-primary/10 relative">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div ref={storyRef} className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+        {/* 4. Brand Vibe & Story Block - REDESIGNED */}
+        {/* 4. Brand Vibe & Story Block - REDESIGNED */}
+        <section className="py-24 md:py-40 bg-cream text-dark border-t border-primary/10 relative overflow-hidden">
+          <div ref={storyRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative min-h-[80vh] flex flex-col justify-center items-center">
+            
+            {/* Background / Floating Imagery */}
+            <div className="absolute inset-0 pointer-events-none z-20">
+              {/* Image 1: Top Left */}
+              <div className="editorial-img-1 absolute hidden md:block top-[5%] left-0 lg:left-[2%] xl:left-[4%] w-64 lg:w-72 aspect-[4/5] rounded-lg overflow-hidden shadow-2xl border-[8px] border-cream -rotate-3 z-20">
+                 <img
+                    src="/emsday.webp"
+                    alt="Em's Burger Day"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Subtle tape effect for sticky note look */}
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/40 backdrop-blur-sm rotate-2 shadow-sm"></div>
+              </div>
               
-              {/* Story Image Grid */}
-              <div className="lg:col-span-6 relative">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-6">
-                    <div className="story-img-container aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-cream bg-primary-dark">
-                      <img
-                        src={isVegOnly ? "/assets/Pull me up.png" : "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=600&q=80"}
-                        alt={isVegOnly ? "Veg Pull Me Up Cheese Burger" : "Pull Me Up Cheese Burger"}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="p-4 rounded-3xl bg-accent text-dark font-heading font-extrabold text-sm shadow-md text-center">
-                      🔥 Fresh In-House Buns Daily
-                    </div>
-                  </div>
+              {/* Image 2: Bottom Right */}
+              <div className="editorial-img-2 absolute hidden md:block bottom-0 right-0 lg:right-[2%] xl:right-[4%] w-64 lg:w-80 aspect-square rounded-lg overflow-hidden shadow-2xl border-[8px] border-cream rotate-3 z-20">
+                 <img
+                    src="/emsnight.webp"
+                    alt="Em's Burger Night"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Subtle tape effect for sticky note look */}
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/40 backdrop-blur-sm -rotate-2 shadow-sm"></div>
+              </div>
+            </div>
 
-                  <div className="space-y-6 pt-12">
-                    <div className="p-4 rounded-3xl bg-primary text-cream font-heading font-bold text-sm shadow-md text-center">
-                      ✨ Dedicated Veg Prep Kitchen
-                    </div>
-                    <div className="story-img-container aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-cream bg-primary-dark">
-                      <img
-                        src={isVegOnly ? "/assets/Truffle Fries.png" : "/assets/708155000_17892310275525648_6367245464321747317_n.jpg"}
-                        alt={isVegOnly ? "Truffle Fries" : "Destroyed Fries"}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                </div>
+            {/* Central Typography */}
+            <div className="relative z-10 max-w-[50rem] mx-auto text-center space-y-8 py-12 md:py-24">
+              <div className="editorial-text inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-heading font-extrabold text-xs uppercase tracking-wider mx-auto">
+                <Heart className="w-4 h-4 fill-primary" />
+                <span>The EM's Philosophy</span>
               </div>
 
-              {/* Story Text */}
-              <div className="story-text lg:col-span-6 space-y-8">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-heading font-extrabold text-xs uppercase tracking-wider">
-                  <Heart className="w-4 h-4 fill-primary" />
-                  <span>The EM's Philosophy</span>
-                </div>
+              <h2 className="editorial-headline font-heading font-black text-6xl sm:text-[5.5rem] lg:text-[7.5rem] text-dark tracking-tighter leading-[0.85] flex flex-col items-center drop-shadow-sm">
+                <span className="block overflow-hidden pb-1 md:pb-3"><span className="block inline-block">CHEMBUR'S</span></span>
+                <span className="block overflow-hidden pb-1 md:pb-3"><span className="block inline-block text-primary">VIBRANT,</span></span>
+                <span className="block overflow-hidden pb-1 md:pb-3"><span className="block inline-block">COOL & AESTHETIC</span></span>
+                <span className="block overflow-hidden pb-1 md:pb-3"><span className="block inline-block">BURGER CAFE</span></span>
+              </h2>
 
-                <h2 className="font-heading font-black text-5xl sm:text-6xl text-dark tracking-tight leading-[1.1]">
-                  CHEMBUR’S COOL, VIBRANT & CUTE BURGER JOINT
-                </h2>
-
-                <p className="text-dark/80 text-lg sm:text-xl font-medium leading-relaxed max-w-xl">
-                  We started EM's Burgers with one simple rule: no sterile fast-food clip-art, no generic frozen patties, and no boring burgers. Located right in Chembur Camp, we smash real meat and fresh veggies onto our signature house-baked buns with bold sauces and molten cheese.
+              <div className="max-w-2xl mx-auto space-y-10 md:bg-cream/70 md:backdrop-blur-md p-2 md:p-8 rounded-3xl mt-12 border border-transparent md:border-primary/10">
+                <p className="editorial-text text-dark/90 text-lg md:text-2xl font-medium leading-relaxed">
+                  We started EM's with one simple rule: no sterile clip-art, no generic frozen patties, and no boring burgers. We smash real meat and fresh veggies onto signature house-baked buns with bold sauces and molten cheese.
                 </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-                  <div className="p-5 rounded-3xl bg-cream-light border border-primary/15 shadow-sm space-y-2 hover:shadow-md transition-shadow">
-                    <div className="font-heading font-bold text-xl text-primary flex items-center gap-2">
-                      <Utensils className="w-5 h-5 text-accent" />
-                      <span>Saucer UFO Burgers</span>
-                    </div>
-                    <p className="text-sm text-dark/70 leading-relaxed">
-                      Press-sealed edges that lock in juicy flavor so every bite drips with goodness.
-                    </p>
-                  </div>
-
-                  <div className="p-5 rounded-3xl bg-cream-light border border-primary/15 shadow-sm space-y-2 hover:shadow-md transition-shadow">
-                    <div className="font-heading font-bold text-xl text-primary flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-accent" />
-                      <span>Pure Veg & Non-Veg</span>
-                    </div>
-                    <p className="text-sm text-dark/70 leading-relaxed">
-                      Separate grills and friers ensuring authentic taste for everyone.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-6">
+                <div className="editorial-btn pt-2">
                   <Link
                     to="/about"
-                    className="btn-micro inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-cream font-heading font-bold text-lg px-8 py-4 rounded-full shadow-lg"
+                    className="btn-micro inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-cream font-heading font-black text-lg md:text-xl px-10 py-5 rounded-full shadow-xl hover:shadow-primary/40 transition-all hover:-translate-y-1"
                   >
-                    <span className="transition-blur">Read Our Cafe Story</span>
+                    <span>Read Our Cafe Story</span>
                   </Link>
                 </div>
               </div>
-
             </div>
+
           </div>
         </section>
 
@@ -208,7 +188,7 @@ export function Home() {
         <Gallery />
 
         {/* 5. Customer Buzz Showcase */}
-        <section className="pt-32 pb-24 bg-primary text-cream relative overflow-hidden mt-[-1px]">
+        <section className="pt-32 pb-24 bg-primary doodles-cream text-cream relative overflow-hidden mt-[-1px]">
           <WaveDivider fillClass="fill-accent" position="top" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-12 relative z-30">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-cream text-primary font-heading font-extrabold text-xs uppercase tracking-wider shadow-lg">
@@ -221,44 +201,77 @@ export function Home() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-              <div className="p-8 rounded-3xl bg-primary-dark/50 border border-cream/15 space-y-4 hover:bg-primary-dark transition-colors">
-                <div className="flex gap-1 text-accent">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-accent" />
-                  ))}
-                </div>
-                <p className="text-base text-cream/90 italic leading-relaxed">
-                  "The Pull Me Up burger is insane! The cheese cascade is totally worth the hype. Perfect spot to chill with friends."
-                </p>
-                <div className="font-heading font-bold text-sm text-accent pt-2">— Rohan S., Chembur Resident</div>
-              </div>
-
-              <div className="p-8 rounded-3xl bg-primary-dark/50 border border-cream/15 space-y-4 hover:bg-primary-dark transition-colors">
-                <div className="flex gap-1 text-accent">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-accent" />
-                  ))}
-                </div>
-                <p className="text-base text-cream/90 italic leading-relaxed">
-                  "Super cute decor and awesome vibes! Also love the QR loyalty stamp program — already 5 stamps in!"
-                </p>
-                <div className="font-heading font-bold text-sm text-accent pt-2">— Ananya K., Regular Guest</div>
-              </div>
-
-              <div className="p-8 rounded-3xl bg-primary-dark/50 border border-cream/15 space-y-4 hover:bg-primary-dark transition-colors">
-                <div className="flex gap-1 text-accent">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-accent" />
-                  ))}
-                </div>
-                <p className="text-base text-cream/90 italic leading-relaxed">
-                  "Destroyed fries + cold coffee combo is unmatched. Way better quality than fast food chains."
-                </p>
-                <div className="font-heading font-bold text-sm text-accent pt-2">— Dev M., Local Office Goer</div>
-              </div>
+              {[
+                {
+                  name: "Pradeep Khandelwal",
+                  stars: 4,
+                  text: "Nice juicy burgers. Chicken BBQ slider and Mushroom Truffle Burgers were especially nice. Sweet potato fries were also good, very nice packaging and cute branding."
+                },
+                {
+                  name: "Tanmay",
+                  stars: 5,
+                  text: "Great place, great aesthetic and even great burgers. If you want a quick burger bite for less money, defo order the sliders."
+                },
+                {
+                  name: "Sneha Ramakrishnan",
+                  stars: 5,
+                  text: "Tried the truffle mushroom burger, cheese fondue fries, jalapeño cheese poppers here and it exceeded my expectations. So fresh and tasty! My friends also tried chicken burgers, which they really liked. Also great music and vibe in the cafe 😊"
+                }
+              ].map((review, idx) => {
+                const isLong = review.text.length > 130;
+                return (
+                  <div key={idx} className="p-8 rounded-3xl bg-primary-dark/50 border border-cream/15 space-y-4 hover:bg-primary-dark transition-colors flex flex-col justify-between">
+                    <div>
+                      <div className="flex gap-1 text-accent mb-4">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-4 h-4 ${i < review.stars ? 'fill-accent' : 'fill-transparent opacity-30'}`} />
+                        ))}
+                      </div>
+                      <p className="text-base text-cream/90 italic leading-relaxed">
+                        "{isLong ? `${review.text.substring(0, 130)}...` : review.text}"
+                      </p>
+                      {isLong && (
+                        <button 
+                          onClick={() => setSelectedReview(review)}
+                          className="text-accent text-sm font-bold mt-2 hover:underline focus:outline-none"
+                        >
+                          Read more
+                        </button>
+                      )}
+                    </div>
+                    <div className="font-heading font-bold text-sm text-accent pt-6">— {review.name}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
+
+        {/* Review Modal */}
+        {selectedReview && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedReview(null)}>
+            <div 
+              className="bg-cream rounded-3xl p-8 max-w-lg w-full shadow-2xl relative border-4 border-primary"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setSelectedReview(null)}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-cream transition-colors"
+              >
+                ✕
+              </button>
+              <div className="flex gap-1 text-primary mb-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className={`w-5 h-5 ${i < selectedReview.stars ? 'fill-primary' : 'fill-transparent opacity-30'}`} />
+                ))}
+              </div>
+              <p className="text-lg text-dark/90 italic leading-relaxed mb-6 font-medium">
+                "{selectedReview.text}"
+              </p>
+              <div className="font-heading font-bold text-base text-primary border-t border-primary/20 pt-4">— {selectedReview.name}</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

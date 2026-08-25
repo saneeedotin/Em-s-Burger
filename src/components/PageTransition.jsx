@@ -9,7 +9,7 @@ const curtainVariants = {
   exitCover: { y: '0%' }
 };
 
-const transitionConfig = { duration: 0.8, ease: [0.76, 0, 0.24, 1] };
+const transitionConfig = { duration: 0.9, ease: [0.85, 0, 0.15, 1] };
 
 export const PageTransition = ({ children }) => {
   return (

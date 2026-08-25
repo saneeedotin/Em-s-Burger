@@ -5,6 +5,7 @@ import { Menu, X, ShoppingBag, User, LogOut, LayoutDashboard, Heart, Sparkles, C
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
 import { useVegMode } from '../context/VegModeContext';
+import FlowingMenu from './FlowingMenu';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,8 +32,8 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-primary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-primary doodles-cream">
+      <div className="relative z-50 bg-primary doodles-cream max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         {/* Brand Logo */}
         <Logo variant="default" size="normal" />
@@ -171,87 +172,76 @@ export function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="md:hidden bg-cream border-t-4 border-accent shadow-2xl overflow-hidden"
+            initial={{ opacity: 0, y: '-100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '-100%' }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-40 bg-primary doodles-cream flex flex-col md:hidden pt-24 pb-8 overflow-y-auto"
           >
-            <div className="px-6 py-8 flex flex-col gap-4">
-              
+            <div className="flex-grow flex flex-col justify-center px-4">
+              <FlowingMenu 
+                items={navLinks.map(link => ({
+                  link: link.path,
+                  text: link.name,
+                  image: "/assets/Meltdown .png"
+                }))}
+                speed={15}
+                textColor="#F4E9D8"
+                bgColor="#D9381E"
+                marqueeBgColor="#F4E9D8"
+                marqueeTextColor="#D9381E"
+                borderColor="#F4E9D8"
+                onItemClick={(item) => {
+                  setIsOpen(false);
+                  navigate(item.link);
+                }}
+              />
+            </div>
+
+            <div className="px-6 mt-8 flex flex-col gap-4">
               {/* User Bar in Mobile Menu */}
               {currentUser ? (
-                <div className="p-4 rounded-3xl bg-primary text-cream flex items-center justify-between">
+                <div className="p-4 rounded-3xl bg-cream/10 border border-cream/20 text-cream flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-accent text-dark font-heading font-black text-base flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-cream text-primary font-heading font-black text-base flex items-center justify-center">
                       {currentUser.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div className="font-heading font-extrabold text-base text-cream">{currentUser.name}</div>
-                      <div className="text-xs text-accent font-bold">{currentUser.loyaltyPoints}/9 Loyalty Stamps</div>
+                      <div className="text-xs text-cream/70 font-bold">{currentUser.loyaltyPoints}/9 Loyalty Stamps</div>
                     </div>
                   </div>
-                  <NavLink
-                    to="/dashboard"
-                    onClick={() => setIsOpen(false)}
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate('/dashboard');
+                    }}
                     className="px-3 py-1.5 rounded-full bg-cream text-primary font-heading font-bold text-xs"
                   >
                     Dashboard
-                  </NavLink>
+                  </button>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3 pb-2">
-                  <NavLink
-                    to="/login"
-                    onClick={() => setIsOpen(false)}
-                    className="py-3 text-center rounded-2xl bg-primary text-cream font-heading font-bold text-sm shadow-sm"
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate('/login');
+                    }}
+                    className="py-3 text-center rounded-2xl bg-cream text-primary font-heading font-bold text-sm shadow-sm"
                   >
                     Log In
-                  </NavLink>
-                  <NavLink
-                    to="/signup"
-                    onClick={() => setIsOpen(false)}
-                    className="py-3 text-center rounded-2xl bg-accent text-dark font-heading font-bold text-sm shadow-sm"
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate('/signup');
+                    }}
+                    className="py-3 text-center rounded-2xl bg-dark text-cream font-heading font-bold text-sm shadow-sm"
                   >
                     Sign Up
-                  </NavLink>
+                  </button>
                 </div>
-              )}
-
-              {navLinks.map((link) => {
-                const isActive = location.pathname === link.path;
-                return (
-                  <NavLink
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center justify-between px-5 py-3.5 rounded-2xl font-heading font-bold text-lg transition-all ${
-                      isActive
-                        ? 'bg-primary text-cream shadow-md'
-                        : 'text-dark hover:bg-primary/10'
-                    }`}
-                  >
-                    <span>{link.name}</span>
-                    {link.badge && (
-                      <span className="px-2.5 py-0.5 text-xs font-bold bg-accent text-dark rounded-full">
-                        {link.badge}
-                      </span>
-                    )}
-                  </NavLink>
-                );
-              })}
-
-              {currentUser && (
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    handleLogout();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-red-100 text-primary font-heading font-bold text-sm"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Log Out</span>
-                </button>
               )}
 
               {/* Mobile Veg Mode Toggle */}
@@ -260,12 +250,25 @@ export function Navbar() {
                 className={`w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-2xl font-heading font-bold text-sm transition-all shadow-sm ${
                   isVegOnly
                     ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-                    : 'bg-cream-light text-primary hover:bg-primary/10 border border-primary/10'
+                    : 'bg-cream/10 text-cream hover:bg-cream/20 border border-cream/20'
                 }`}
               >
                 <Leaf className={`w-4 h-4 ${isVegOnly ? 'fill-white' : ''}`} />
                 <span>{isVegOnly ? 'Pure Veg Mode Active' : 'Enable Pure Veg Mode'}</span>
               </button>
+
+              {currentUser && (
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-cream/10 text-cream hover:bg-red-500/20 font-heading font-bold text-sm transition-colors border border-transparent hover:border-red-500/30"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Log Out</span>
+                </button>
+              )}
 
               <div className="pt-2">
                 <a
@@ -273,13 +276,12 @@ export function Navbar() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setIsOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-cream font-heading font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:bg-primary-hover transition-all"
+                  className="w-full flex items-center justify-center gap-2 bg-dark text-cream font-heading font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:bg-black transition-all"
                 >
                   <ShoppingBag className="w-5 h-5" />
                   <span>Order on Zomato / Swiggy</span>
                 </a>
               </div>
-
             </div>
           </motion.div>
         )}

@@ -3,7 +3,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
-import { Plane } from 'lucide-react';
+import { Plane, MapPin } from 'lucide-react';
 import { WaveDivider } from './WaveDivider';
 
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
@@ -33,7 +33,18 @@ export function TakeAwaySection() {
         ease: 'none',
       });
 
-      // Pop-in animations for the polaroids (removed as photos are removed)
+      // Simple fade up for the stop cards
+      gsap.from('.plane-stop', {
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 30%',
+        }
+      });
     },
     { scope: sectionRef }
   );
@@ -79,6 +90,28 @@ export function TakeAwaySection() {
             Freshly packed smash burgers, ready to go wherever you crave. From our flat-top to any corner of the globe, we ensure every layer stays hot and juicy.
           </p>
         </div>
+
+        {/* Plane Stops / Info Cards */}
+        <div className="absolute hidden md:block plane-stop top-[40%] right-8 lg:right-16 xl:right-32 max-w-sm p-8 rounded-3xl bg-primary shadow-2xl border border-cream/20 rotate-3 transform hover:rotate-0 transition-transform">
+          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 bg-cream/20 text-cream text-xs font-bold uppercase tracking-widest rounded-full">
+             <MapPin className="w-4 h-4" /> Destination 01
+          </div>
+          <h3 className="text-3xl font-black font-heading text-cream mb-3">Chembur Camp</h3>
+          <p className="text-cream/90 text-base leading-relaxed">
+            Where the magic happens. Drop by our vibrant original outlet to experience the aesthetic, grab a physical menu, and smell the fresh buns toasting.
+          </p>
+        </div>
+
+        <div className="absolute hidden md:block plane-stop top-[97%] lg:top-[112%] right-[40%] max-w-sm p-8 rounded-3xl bg-dark shadow-2xl border border-primary/20 -rotate-2 transform hover:rotate-0 transition-transform z-10">
+          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest rounded-full">
+             <MapPin className="w-4 h-4" /> Destination 02
+          </div>
+          <h3 className="text-3xl font-black font-heading text-cream mb-3">Your Home</h3>
+          <p className="text-cream/70 text-base leading-relaxed">
+            Our custom packaging ensures that your smash burger and loaded fries arrive just as piping hot and messy as they would at our tables.
+          </p>
+        </div>
+
       </div>
     </section>
   );

@@ -125,16 +125,21 @@ export function Contact() {
             </p>
           </div>
 
-          {/* Floating Food Graphics on Right */}
-          <div className="lg:col-span-5 relative flex justify-center items-center h-[300px]">
-            <div className="anim-floating-img absolute w-48 h-48 rounded-full overflow-hidden border-4 border-cream shadow-2xl z-20 left-10 transform -rotate-12 hover:scale-105 transition-transform">
-              <img src="/assets/Truffle Fries.png" alt="Truffle Fries" className="w-full h-full object-cover" />
-            </div>
-            <div className="anim-floating-img absolute w-36 h-36 rounded-full overflow-hidden border-4 border-cream shadow-xl z-10 right-10 top-5 transform rotate-12 hover:scale-105 transition-transform">
-              <img src="/assets/Double Stack.png" alt="Double Stack" className="w-full h-full object-cover" />
-            </div>
-            <div className="anim-floating-img absolute w-28 h-28 rounded-full overflow-hidden border-4 border-cream shadow-lg z-0 bottom-5 right-20 transform -rotate-6 hover:scale-105 transition-transform">
-              <img src="/assets/Veggie Avacado.png" alt="Veggie Avocado" className="w-full h-full object-cover" />
+          {/* Bento Grid Graphics on Right */}
+          <div className="lg:col-span-5 relative h-[300px] w-full">
+            <div className="grid grid-cols-2 grid-rows-2 gap-4 h-full w-full">
+              {/* Left Tall Truffle Fries */}
+              <div className="anim-floating-img col-span-1 row-span-2 rounded-[2rem] overflow-hidden border-4 border-cream shadow-2xl hover:scale-[1.02] transition-transform duration-300">
+                <img src="/assets/Truffle Fries.png" alt="Truffle Fries" className="w-full h-full object-cover" />
+              </div>
+              {/* Top Right Double Stack */}
+              <div className="anim-floating-img col-span-1 row-span-1 rounded-[2rem] overflow-hidden border-4 border-cream shadow-xl hover:scale-[1.02] transition-transform duration-300">
+                <img src="/assets/Double Stack.png" alt="Double Stack" className="w-full h-full object-cover" />
+              </div>
+              {/* Bottom Right Veggie Avocado */}
+              <div className="anim-floating-img col-span-1 row-span-1 rounded-[2rem] overflow-hidden border-4 border-cream shadow-lg hover:scale-[1.02] transition-transform duration-300">
+                <img src="/assets/Veggie Avacado.png" alt="Veggie Avocado" className="w-full h-full object-cover" />
+              </div>
             </div>
           </div>
 

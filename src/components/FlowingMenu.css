@@ -36,7 +36,7 @@
   white-space: nowrap;
   font-family: 'Outfit', sans-serif;
   font-weight: 900;
-  font-size: 6vh;
+  font-size: 4vh;
 }
 
 .menu__item-link:hover {
@@ -84,14 +84,14 @@
   text-transform: uppercase;
   font-family: 'Outfit', sans-serif;
   font-weight: 900;
-  font-size: 6vh;
+  font-size: 4vh;
   line-height: 1;
   padding: 0 1vw;
 }
 
 .marquee__img {
   width: 200px;
-  height: 7vh;
+  height: 5vh;
   margin: 2em 2vw;
   padding: 1em 0;
   border-radius: 50px;

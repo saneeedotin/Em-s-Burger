@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { db } from '../config/firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { DashboardTabs } from '../components/DashboardTabs';
 import { CardFace } from '../components/LoyaltyPunchCard';
 import { 
   Award, Star, Sparkles, ShoppingBag, Heart, CheckCircle2, 
-  RotateCcw, Plus, ExternalLink, QrCode, ArrowRight, UserCheck 
+  RotateCcw, Plus, ExternalLink, QrCode, ArrowRight, UserCheck,
+  Clock, ChefHat, Bell
 } from 'lucide-react';
+
+const orderStatusConfig = {
+  pending:   { label: 'Pending',   icon: Clock,        color: 'bg-amber-100 text-amber-800' },
+  preparing: { label: 'Preparing', icon: ChefHat,      color: 'bg-blue-100 text-blue-800' },
+  ready:     { label: 'Ready',     icon: Bell,         color: 'bg-emerald-100 text-emerald-800' },
+  delivered: { label: 'Delivered', icon: CheckCircle2, color: 'bg-gray-100 text-gray-600' },
+};
 
 export function Dashboard() {
   const { currentUser } = useAuth();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('loyalty');
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -33,28 +45,83 @@ export function Dashboard() {
     }
   }, [points]);
 
-  useEffect(() => {
-    if (currentUser?.id) {
-      fetchUserOrders();
-    }
-  }, [currentUser]);
-
-  const fetchUserOrders = async () => {
-    try {
-      const q = query(
-        collection(db, 'orders'),
-        where('user_id', '==', currentUser.id),
-        orderBy('created_at', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      const ordersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setOrders(ordersData);
-    } catch (err) {
-      console.error('Failed to load orders', err);
-    } finally {
-      setLoadingOrders(false);
-    }
+  // Helper to extract numeric timestamp
+  const getTimestamp = (val) => {
+    if (!val) return 0;
+    if (typeof val.toMillis === 'function') return val.toMillis();
+    if (typeof val.toDate === 'function') return val.toDate().getTime();
+    if (typeof val === 'number') return val;
+    const parsed = new Date(val).getTime();
+    return isNaN(parsed) ? 0 : parsed;
   };
+
+  // Live order updates via onSnapshot and LocalStorage
+  useEffect(() => {
+    let firestoreOrders = [];
+
+    const mergeAndSetUserOrders = (fsOrders) => {
+      let localOrders = [];
+      try {
+        const allLocal = JSON.parse(localStorage.getItem('ems_all_orders') || '[]');
+        localOrders = allLocal.filter(o => 
+          o.user_id === currentUser?.id || 
+          (currentUser?.email && o.user_email === currentUser.email) ||
+          (currentUser?.id === 'demo-user' && (!o.user_id || o.user_id === 'demo-user' || o.user_id === 'guest'))
+        );
+      } catch (e) {}
+
+      const orderMap = new Map();
+      localOrders.forEach(o => {
+        const key = o.order_token || o.id;
+        orderMap.set(key, o);
+      });
+
+      fsOrders.forEach(o => {
+        const key = o.order_token || o.id;
+        const existing = orderMap.get(key) || {};
+        orderMap.set(key, { ...existing, ...o });
+      });
+
+      const merged = Array.from(orderMap.values());
+      merged.sort((a, b) => getTimestamp(b.created_at) - getTimestamp(a.created_at));
+      setOrders(merged);
+      setLoadingOrders(false);
+    };
+
+    // Load initial local orders immediately
+    mergeAndSetUserOrders([]);
+
+    // Listen for local updates
+    const handleLocalUpdate = () => mergeAndSetUserOrders(firestoreOrders);
+    window.addEventListener('ems_orders_updated', handleLocalUpdate);
+    window.addEventListener('storage', handleLocalUpdate);
+
+    // Listen to Firestore
+    let unsubscribe = () => {};
+    if (currentUser?.id) {
+      try {
+        const q = query(
+          collection(db, 'orders'),
+          where('user_id', '==', currentUser.id)
+        );
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          firestoreOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          mergeAndSetUserOrders(firestoreOrders);
+        }, (error) => {
+          console.warn('Firestore user orders read warning:', error);
+          mergeAndSetUserOrders([]);
+        });
+      } catch (e) {
+        console.warn('Firestore user listener setup warning:', e);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('ems_orders_updated', handleLocalUpdate);
+      window.removeEventListener('storage', handleLocalUpdate);
+      unsubscribe();
+    };
+  }, [currentUser]);
 
   const fireConfetti = () => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -67,9 +134,29 @@ export function Dashboard() {
     });
   };
 
-  const handleReorder = (orderId) => {
-    setReorderedId(orderId);
-    setTimeout(() => setReorderedId(null), 2000);
+  const handleReorder = (order) => {
+    if (!order.items || order.items.length === 0) return;
+    // Add each item from the order to cart
+    order.items.forEach(item => {
+      addToCart({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        isVeg: item.isVeg,
+        image: '/logoo.svg', // fallback image
+      }, item.quantity || 1);
+    });
+    setReorderedId(order.id);
+    setTimeout(() => {
+      setReorderedId(null);
+      navigate('/checkout');
+    }, 1200);
+  };
+
+  const formatOrderDate = (timestamp) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -237,8 +324,12 @@ export function Dashboard() {
               {loadingOrders ? (
                  <div className="py-16 text-center text-dark/50">Loading orders...</div>
               ) : orders.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {orders.map((order, idx) => (
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {orders.map((order, idx) => {
+                    const status = order.status || 'pending';
+                    const statusInfo = orderStatusConfig[status] || orderStatusConfig.pending;
+                    const StatusIcon = statusInfo.icon;
+                    return (
                     <motion.div
                       key={order.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -249,22 +340,23 @@ export function Dashboard() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="font-heading font-extrabold text-sm text-primary">
-                            Order #{order.id.slice(0, 8)}
+                            {order.order_token || `Order #${order.id.slice(0, 8)}`}
                           </span>
-                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-heading font-bold uppercase">
-                            ✓ {order.status}
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-heading font-bold uppercase ${statusInfo.color}`}>
+                            <StatusIcon className="w-3 h-3" />
+                            {statusInfo.label}
                           </span>
                         </div>
 
                         <div className="text-xs font-semibold text-dark/60">
-                          Ordered on {new Date(order.created_at).toLocaleDateString()}
+                          {formatOrderDate(order.created_at)}
                         </div>
 
                         <div className="space-y-1.5 pt-2 border-t border-primary/10">
                           {order.items && order.items.map((item, i) => (
                             <div key={i} className="flex items-center justify-between text-xs font-medium">
-                              <span className="text-dark">{item.qty}x {item.name}</span>
-                              <span className="text-dark/70 font-bold">₹{item.price * item.qty}</span>
+                              <span className="text-dark">{item.quantity || item.qty || 1}x {item.name}</span>
+                              <span className="text-dark/70 font-bold">₹{item.price * (item.quantity || item.qty || 1)}</span>
                             </div>
                           ))}
                         </div>
@@ -275,9 +367,33 @@ export function Dashboard() {
                           <div className="text-[10px] uppercase font-bold text-dark/50">Total Amount</div>
                           <div className="font-heading font-black text-xl text-primary">₹{order.total_amount}</div>
                         </div>
+                        {status === 'delivered' && (
+                          <button
+                            onClick={() => handleReorder(order)}
+                            disabled={reorderedId === order.id}
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-heading font-bold text-xs shadow-sm transition-all active:scale-95 ${
+                              reorderedId === order.id
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-primary text-cream hover:bg-primary-dark'
+                            }`}
+                          >
+                            {reorderedId === order.id ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Added to Cart!
+                              </>
+                            ) : (
+                              <>
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                Reorder
+                              </>
+                            )}
+                          </button>
+                        )}
                       </div>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="py-16 text-center bg-cream-light rounded-4xl border-2 border-dashed border-primary/20 space-y-4">

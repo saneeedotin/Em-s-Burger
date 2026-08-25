@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useMenu } from '../context/MenuContext';
 import { MenuItemCard } from '../components/MenuItemCard';
 import { PhysicalMenuLayout } from '../components/PhysicalMenuLayout';
 import { ItemModal } from '../components/ItemModal';
+import Masonry from '../components/Masonry';
 import { Utensils, Sparkles, Filter, Search, LayoutGrid, List, BookOpen } from 'lucide-react';
 import { useVegMode } from '../context/VegModeContext';
 
+gsap.registerPlugin(ScrollTrigger);
+
 export function Menu() {
+  const containerRef = useRef(null);
   const { isVegOnly } = useVegMode();
   const { categories: MENU_CATEGORIES, items: MENU_ITEMS } = useMenu();
   const [activeCategory, setActiveCategory] = useState('all');
@@ -18,26 +25,68 @@ export function Menu() {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const filteredItems = MENU_ITEMS.filter((item) => {
-    // Category match
-    const categoryMatch = activeCategory === 'all' || item.category === activeCategory;
+    // 1. Check Global Veg Mode
+    if (isVegOnly && !item.isVeg) return false;
     
-    // Veg/NonVeg match
-    const vegMatch = isVegOnly 
-      ? item.isVeg === true
-      : vegFilter === 'all' ? true :
-        vegFilter === 'veg' ? item.isVeg === true :
-        item.isVeg === false;
-
-    // Search query match
-    const searchMatch = 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return categoryMatch && vegMatch && searchMatch;
+    // 2. Check Category Filter
+    if (activeCategory !== 'all' && item.category !== activeCategory) return false;
+    
+    // 3. Check Veg/Non-Veg Tab Filter
+    if (vegFilter === 'veg' && !item.isVeg) return false;
+    if (vegFilter === 'nonveg' && item.isVeg) return false;
+    
+    // 4. Check Search Query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        item.name.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query)
+      );
+    }
+    
+    return true;
   });
 
+  const masonryItems = useMemo(() => {
+    return filteredItems.map((item, index) => ({
+      id: item.id,
+      img: item.image,
+      name: item.name,
+      price: item.price,
+      isVeg: item.isVeg,
+      height: [200, 300, 240, 280, 220, 310][index % 6], // more uneven bento heights
+      onClick: () => setSelectedItem(item)
+    }));
+  }, [filteredItems]);
+
+  useGSAP(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    
+    // Initial hidden state for GSAP
+    gsap.set('.menu-card', { y: 40, opacity: 0 });
+
+    ScrollTrigger.batch('.menu-card', {
+      interval: 0.1,
+      batchMax: 4,
+      onEnter: (batch) => {
+        gsap.to(batch, {
+          opacity: 1,
+          y: 0,
+          stagger: 0.1,
+          duration: 0.8,
+          ease: 'power3.out',
+          overwrite: true
+        });
+      },
+      once: true
+    });
+    
+    // Refresh scroll triggers when layout changes
+    ScrollTrigger.refresh();
+  }, { dependencies: [filteredItems, viewMode], scope: containerRef });
+
   return (
-    <div className="pt-6 pb-12 sm:py-12 bg-cream min-h-screen text-dark relative">
+    <div ref={containerRef} className="pt-6 pb-12 sm:py-12 bg-cream doodles-red min-h-screen text-dark relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-10">
         
         {/* Menu Header */}
@@ -46,14 +95,51 @@ export function Menu() {
             Menu
           </h1>
           
-          <button 
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-cream rounded-full font-heading font-bold text-xs sm:text-sm shadow-md transition-transform active:scale-95"
-          >
-            <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">{showFilters ? 'Hide Options' : 'Menu Options'}</span>
-            <span className="sm:hidden">{showFilters ? 'Hide' : 'Options'}</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Delivery Apps (Mobile Only) */}
+            <div className="flex sm:hidden items-center gap-1.5">
+              <a href="https://www.zomato.com/mumbai/ems-burgers-chembur/" target="_blank" rel="noopener noreferrer" className="w-[36px] h-[36px] bg-cream border border-[#E23744]/20 text-[#E23744] hover:bg-[#E23744] hover:text-white rounded-full flex items-center justify-center shadow-sm transition-colors" title="Order on Zomato">
+                <span className="font-heading font-black italic text-sm mt-0.5">Z</span>
+              </a>
+              <a href="https://www.swiggy.com/city/mumbai/ems-burgers-chembur-rest1281237" target="_blank" rel="noopener noreferrer" className="w-[36px] h-[36px] bg-cream border border-[#fc8019]/20 text-[#fc8019] hover:bg-[#fc8019] hover:text-white rounded-full flex items-center justify-center shadow-sm transition-colors" title="Order on Swiggy">
+                <span className="font-heading font-black italic text-sm mt-0.5">S</span>
+              </a>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-[#F4E9D8] border border-primary/20 rounded-full p-1 shadow-sm h-[36px] sm:h-[40px]">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`w-[28px] h-[28px] sm:w-[32px] sm:h-[32px] rounded-full flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-[#D9381E] text-cream shadow-sm' : 'text-dark/70 hover:text-dark hover:bg-black/5'}`}
+                title="Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`w-[28px] h-[28px] sm:w-[32px] sm:h-[32px] rounded-full flex items-center justify-center transition-colors ${viewMode === 'list' ? 'bg-[#D9381E] text-cream shadow-sm' : 'text-dark/70 hover:text-dark hover:bg-black/5'}`}
+                title="List View"
+              >
+                <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('physical')}
+                className={`w-[28px] h-[28px] sm:w-[32px] sm:h-[32px] rounded-full flex items-center justify-center transition-colors ${viewMode === 'physical' ? 'bg-[#D9381E] text-cream shadow-sm' : 'text-dark/70 hover:text-dark hover:bg-black/5'}`}
+                title="Book View"
+              >
+                <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+            </div>
+
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-cream rounded-full font-heading font-bold text-xs sm:text-sm shadow-md transition-transform active:scale-95 h-[40px]"
+            >
+              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">{showFilters ? 'Hide Options' : 'Menu Options'}</span>
+              <span className="sm:hidden">{showFilters ? 'Hide' : 'Options'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Filter Controls & Search Bar */}
@@ -197,20 +283,34 @@ export function Menu() {
         {viewMode === 'physical' ? (
           <PhysicalMenuLayout isVegOnly={isVegOnly} onSelect={setSelectedItem} />
         ) : (
-          <motion.div 
-            layout 
-            className={`grid gap-3 sm:gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-3 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1 max-w-4xl mx-auto'
-            }`}
-          >
-            <AnimatePresence>
-              {filteredItems.map((item) => (
-                <MenuItemCard key={item.id} item={item} viewMode={viewMode} onSelect={setSelectedItem} />
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <>
+            {/* Mobile Bento Masonry Layout (Only in Grid View) */}
+            <div className={`sm:hidden w-full ${viewMode === 'list' ? 'hidden' : 'block'}`}>
+              <Masonry 
+                items={masonryItems} 
+                ease="sine.out"
+                duration={0.6}
+                stagger={0.08}
+                animateFrom="bottom"
+              />
+            </div>
+
+            {/* Desktop Grid Layout / Universal List Layout */}
+            <motion.div 
+              layout 
+              className={`gap-3 sm:gap-6 ${
+                viewMode === 'list' 
+                  ? 'flex flex-col max-w-4xl mx-auto' 
+                  : 'hidden sm:grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'
+              }`}
+            >
+              <AnimatePresence>
+                {filteredItems.map((item) => (
+                  <MenuItemCard key={item.id} item={item} viewMode={viewMode} onSelect={setSelectedItem} />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          </>
         )}
 
         {filteredItems.length === 0 && viewMode !== 'physical' && (

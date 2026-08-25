@@ -9,7 +9,8 @@ import {
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  signInAnonymously
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, runTransaction } from 'firebase/firestore';
 
@@ -111,12 +112,18 @@ export function AuthProvider({ children }) {
     try {
       // Hardcoded admin check
       if ((email.toLowerCase() === ADMIN_CREDENTIALS.email || email.toLowerCase() === 'admin@emsburger.com') && password === ADMIN_CREDENTIALS.password) {
+        try {
+          if (!auth.currentUser) await signInAnonymously(auth);
+        } catch (e) {}
         setCurrentUser({ id: 'admin', email: ADMIN_CREDENTIALS.email, role: 'admin', name: 'Admin' });
         return { success: true, isAdmin: true };
       }
 
       // Hardcoded demo user check
       if (email.toLowerCase() === 'demo@emsburgers.com') {
+        try {
+          if (!auth.currentUser) await signInAnonymously(auth);
+        } catch (e) {}
         setCurrentUser({ id: 'demo-user', email: 'demo@emsburgers.com', role: 'user', name: 'Demo User', stamps: 5 });
         return { success: true, isAdmin: false };
       }

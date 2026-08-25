@@ -69,6 +69,11 @@ function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marquee
       const contentWidth = marqueeContent.offsetWidth;
       const viewportWidth = window.innerWidth;
 
+      if (contentWidth === 0) {
+        setRepetitions(4);
+        return;
+      }
+
       const needed = Math.ceil(viewportWidth / contentWidth) + 2;
       setRepetitions(Math.max(4, needed));
     };

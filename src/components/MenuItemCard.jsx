@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Sparkles, Heart, Minus, ShoppingBag } from 'lucide-react';
+import { Plus, Sparkles, Heart, ShoppingBag, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
   const { id, name, isVeg, description, price, image, badge, isSignature, zomatoLink } = item;
   const { currentUser, toggleFavourite } = useAuth();
-  const { addToCart } = useCart();
+  const { addToCart, getCartItemCount } = useCart();
   const navigate = useNavigate();
   
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [quantity, setQuantity] = useState(0);
   const [addedAnimation, setAddedAnimation] = useState(false);
 
   const isFavourited = currentUser?.favourites?.includes(id);
+  const inCartCount = getCartItemCount(id);
 
   const handleHeartClick = (e) => {
     e.stopPropagation();
@@ -29,33 +29,17 @@ export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    if (quantity === 0) return; // Prevent adding 0 items
-    addToCart(item, quantity);
+    addToCart(item, 1);
     setAddedAnimation(true);
-    setQuantity(0); // Reset after adding
-    setTimeout(() => setAddedAnimation(false), 1000);
-  };
-
-  const incrementQty = (e) => {
-    e.stopPropagation();
-    setQuantity(q => q + 1);
-  };
-
-  const decrementQty = (e) => {
-    e.stopPropagation();
-    setQuantity(q => Math.max(0, q - 1));
+    setTimeout(() => setAddedAnimation(false), 1200);
   };
 
   return (
     <motion.div
       layout
       onClick={() => onSelect && onSelect(item)}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
-      className={`group relative cursor-pointer bg-primary text-cream rounded-xl sm:rounded-3xl p-2 sm:p-5 border-2 ${
+      className={`menu-card group relative cursor-pointer bg-primary text-cream rounded-xl sm:rounded-3xl p-2 sm:p-5 border-2 ${
         isSignature ? 'border-primary-dark/40 shadow-xl' : 'border-primary-dark/20 shadow-md'
       } flex ${viewMode === 'list' ? 'flex-row items-center gap-4 sm:gap-6' : 'flex-col justify-between'} transition-all duration-300 hover:shadow-2xl hover:border-primary-dark/60`}
     >
@@ -89,6 +73,20 @@ export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
               </div>
             )}
           </div>
+
+          {/* In-cart badge */}
+          <AnimatePresence>
+            {inCartCount > 0 && !addedAnimation && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="absolute bottom-1 left-1 sm:bottom-3 sm:left-3 z-10 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-heading font-black shadow-md"
+              >
+                {inCartCount} in cart
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Heart Favourite Button */}
           <button
@@ -149,38 +147,26 @@ export function MenuItemCard({ item, onSelect, viewMode = 'grid' }) {
         </div>
       </div>
 
-      {/* Card Footer Action: Add to Cart */}
+      {/* Card Footer Action: One-tap Add to Cart */}
       <div className={`${viewMode === 'list' ? 'flex flex-col justify-center gap-2 shrink-0 border-l border-cream/20 pl-3 sm:pl-6 ml-auto' : 'mt-3 sm:mt-5 pt-3 sm:pt-4 border-t border-cream/20 flex flex-col gap-3'}`}>
-        <div className="flex items-center justify-between" onClick={e => e.stopPropagation()}>
-          <div className="flex items-center bg-primary-dark/30 rounded-full border border-cream/10 p-1">
-            <button
-              onClick={decrementQty}
-              className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-cream hover:bg-cream/10 rounded-full transition-colors"
-            >
-              <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
-            </button>
-            <span className="w-6 sm:w-8 text-center font-heading font-bold text-sm sm:text-base">
-              {quantity}
-            </span>
-            <button
-              onClick={incrementQty}
-              className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-cream hover:bg-cream/10 rounded-full transition-colors"
-            >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-            </button>
-          </div>
-          
+        <div className="flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
           <button
             onClick={handleAddToCart}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-heading font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${
-              addedAnimation ? 'bg-emerald-500 text-white' : 'bg-cream text-dark hover:bg-accent'
+            disabled={addedAnimation}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-heading font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${
+              addedAnimation 
+                ? 'bg-emerald-500 text-white' 
+                : 'bg-cream text-dark hover:bg-accent'
             }`}
           >
             {addedAnimation ? (
-              <>Added!</>
+              <>
+                <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                Added!
+              </>
             ) : (
               <>
-                <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                 Add
               </>
             )}

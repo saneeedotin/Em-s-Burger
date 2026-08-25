@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
+const MAX_ITEM_QTY = 20;
+
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
     try {
@@ -36,14 +38,16 @@ export function CartProvider({ children }) {
 
       const existing = prev.find(c => c.cartItemId === cartItemId);
       if (existing) {
+        const newQty = Math.min(MAX_ITEM_QTY, existing.quantity + quantity);
         return prev.map(c => 
           c.cartItemId === cartItemId 
-            ? { ...c, quantity: c.quantity + quantity }
+            ? { ...c, quantity: newQty }
             : c
         );
       }
       
-      return [...prev, { ...item, cartItemId, quantity, addons }];
+      const clampedQty = Math.min(MAX_ITEM_QTY, Math.max(1, quantity));
+      return [...prev, { ...item, cartItemId, quantity: clampedQty, addons }];
     });
   };
 
@@ -52,13 +56,22 @@ export function CartProvider({ children }) {
   };
 
   const updateQuantity = (cartItemId, delta) => {
-    setCart(prev => prev.map(c => {
-      if (c.cartItemId === cartItemId) {
-        const newQty = Math.max(1, c.quantity + delta);
-        return { ...c, quantity: newQty };
-      }
-      return c;
-    }));
+    setCart(prev => {
+      return prev.reduce((acc, c) => {
+        if (c.cartItemId === cartItemId) {
+          const newQty = c.quantity + delta;
+          // If quantity drops to 0 or below, remove the item
+          if (newQty <= 0) {
+            return acc; // skip this item (removes it)
+          }
+          // Clamp to max
+          acc.push({ ...c, quantity: Math.min(MAX_ITEM_QTY, newQty) });
+        } else {
+          acc.push(c);
+        }
+        return acc;
+      }, []);
+    });
   };
 
   const clearCart = () => {
@@ -66,11 +79,19 @@ export function CartProvider({ children }) {
     setCustomRequest('');
   };
 
+  const getCartItemCount = (itemId) => {
+    return cart
+      .filter(c => c.id === itemId)
+      .reduce((sum, c) => sum + c.quantity, 0);
+  };
+
   const cartTotal = cart.reduce((total, item) => {
     const itemTotal = item.price * item.quantity;
     const addonsTotal = (item.addons || []).reduce((sum, a) => sum + a.price, 0) * item.quantity;
     return total + itemTotal + addonsTotal;
   }, 0);
+
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider value={{
@@ -81,7 +102,10 @@ export function CartProvider({ children }) {
       clearCart,
       customRequest,
       setCustomRequest,
-      cartTotal
+      cartTotal,
+      cartItemCount,
+      getCartItemCount,
+      MAX_ITEM_QTY
     }}>
       {children}
     </CartContext.Provider>

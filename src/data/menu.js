@@ -16,7 +16,7 @@ export const MENU_ITEMS = [
   // CLASSIC BURGERS
   {
     id: "classic-cheeseburger-chicken",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/ow8j0jlh",
     name: "The Classic Cheeseburger (Chicken)",
     category: "classic",
     isVeg: false,
@@ -28,7 +28,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "double-stack-burger-chicken",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/rts3w007",
     name: "Double Stack Burger (Chicken)",
     category: "classic",
     isVeg: false,
@@ -40,7 +40,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "veggie-classic",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/58v7ixnm",
     name: "Veggie Classic",
     category: "classic",
     isVeg: true,
@@ -52,7 +52,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "spicy-classic",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/p57iwjst",
     name: "Spicy Classic",
     category: "classic",
     isVeg: true,
@@ -66,7 +66,7 @@ export const MENU_ITEMS = [
   // SIGNATURES
   {
     id: "the-truffle-mushroom",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/fasfmxzw",
     name: "The Truffle Mushroom",
     category: "signatures",
     isVeg: true,
@@ -78,7 +78,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "hot-honey-bbq-chicken",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145784872911dac09",
     name: "Hot Honey / BBQ Chicken",
     category: "signatures",
     isVeg: false,
@@ -90,7 +90,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "melt-down",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/8ei1uy91",
     name: "Melt Down",
     category: "signatures",
     isVeg: false,
@@ -113,7 +113,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "thai-fish-burger",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145784893911da9b7",
     name: "Thai Fish Burger",
     category: "signatures",
     isVeg: false,
@@ -126,7 +126,7 @@ export const MENU_ITEMS = [
   // UFO BURGERS
   {
     id: "ufo-bbq-chicken",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145785171911dad10",
     name: "BBQ Chicken UFO",
     category: "ufo",
     isVeg: false,
@@ -138,7 +138,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "ufo-juicy-lucy-potato",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145785194911dad2d",
     name: "Juicy Lucy (Potato) UFO",
     category: "ufo",
     isVeg: true,
@@ -149,7 +149,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "ufo-juicy-lucy-chicken",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145785186911daf18",
     name: "Juicy Lucy (Chicken) UFO",
     category: "ufo",
     isVeg: false,
@@ -160,7 +160,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "ufo-mumbai",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://link.zomato.com/xqzv/dshare?id=145785211911daec2",
     name: "Mumbai UFO",
     category: "ufo",
     isVeg: true,
@@ -174,7 +174,7 @@ export const MENU_ITEMS = [
   // CROISSANT TAKEOVER
   {
     id: "croissant-chicken",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/bzjl0h5p",
     name: "Chicken Croissant Takeover",
     category: "croissant",
     isVeg: false,
@@ -185,7 +185,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "croissant-lamb",
-    zomatoLink: "https://www.zomato.com/mobile",
+    zomatoLink: "https://zomato.onelink.me/xqzv/azswdf1c",
     name: "Lamb Croissant Takeover",
     category: "croissant",
     isVeg: false,
