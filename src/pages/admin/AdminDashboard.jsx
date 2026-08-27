@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
-import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { Search, Hash, User, Mail, Award, ShoppingBag, Coffee, Star, Sparkles, Flame, Utensils, X, Ban } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -10,9 +10,20 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [filterMode, setFilterMode] = useState('all');
+  const [liveCarts, setLiveCarts] = useState([]);
 
   useEffect(() => {
     fetchUsers();
+    
+    // Listen to live carts
+    const unsubscribe = onSnapshot(collection(db, 'live_carts'), (snapshot) => {
+      const cartsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Sort by recently updated
+      cartsData.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      setLiveCarts(cartsData);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const fetchUsers = async () => {
@@ -99,8 +110,62 @@ export function AdminDashboard() {
         <Sparkles className="absolute top-[40%] left-[30%] w-16 h-16 rotate-45" />
         <Hash className="absolute top-[50%] right-[25%] w-20 h-20 -rotate-6" />
       </div>
+
+      {/* Live Carts Section */}
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-accent/20 rounded-2xl flex items-center justify-center text-accent">
+            <ShoppingBag size={24} />
+          </div>
+          <div>
+            <h2 className="text-3xl font-heading font-black text-dark tracking-tight">Live Carts</h2>
+            <p className="text-dark/60 font-medium">Customers currently building orders.</p>
+          </div>
+        </div>
+
+        {liveCarts.length === 0 ? (
+          <div className="bg-white rounded-3xl p-8 text-center border border-dark/5 shadow-sm">
+            <p className="text-dark/50">No active carts right now.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {liveCarts.map(cart => (
+              <div key={cart.id} className="bg-white rounded-3xl p-6 border border-dark/5 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-8 -mt-8 pointer-events-none transition-transform group-hover:scale-110" />
+                <div className="flex items-start justify-between relative z-10">
+                  <div>
+                    <h3 className="font-bold text-lg text-dark">{cart.userName}</h3>
+                    <p className="text-dark/50 text-xs mt-0.5">{cart.userEmail}</p>
+                    <p className="text-xs font-mono bg-dark/5 px-2 py-0.5 rounded inline-block mt-2 font-bold text-dark/70">
+                      Last active: {new Date(cart.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-heading font-black text-xl text-primary">₹{cart.cartTotal}</p>
+                    <p className="text-dark/50 text-xs font-bold">{cart.items.length} items</p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-dark/5 relative z-10 space-y-2">
+                  {cart.items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-dark/80"><span className="text-accent font-bold mr-1">{item.quantity}x</span> {item.name}</span>
+                      <span className="text-dark/60 font-bold">₹{item.price * item.quantity}</span>
+                    </div>
+                  ))}
+                  {cart.customRequest && (
+                    <p className="text-xs text-dark/60 italic mt-2 bg-cream/50 p-2 rounded">
+                      " {cart.customRequest} "
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-4 pt-8 border-t border-dark/10">
         <h2 className="text-4xl md:text-5xl font-heading font-black text-dark tracking-tight">Customer Search</h2>
         <p className="text-dark/60 text-lg max-w-xl mx-auto">
           Find customers instantly using their EMCODE, name, or email to view details or manage loyalty.

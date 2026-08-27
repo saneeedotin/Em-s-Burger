@@ -53,6 +53,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     
+    // Live Carts
+    match /live_carts/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    
     // Email OTPs (if used for auth verification)
     match /email_otps/{email} {
       allow read, write: if true;

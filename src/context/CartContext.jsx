@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { db } from '../config/firebase';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -29,6 +32,46 @@ export function CartProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('ems_cart_request', customRequest);
   }, [customRequest]);
+
+  const { currentUser } = useAuth();
+  
+  // Sync live cart to Firestore for admin tracking
+  useEffect(() => {
+    if (!currentUser) return; // Only sync for registered users
+    
+    const syncCart = async () => {
+      try {
+        const cartRef = doc(db, 'live_carts', currentUser.id);
+        if (cart.length > 0) {
+          // Calculate total
+          const total = cart.reduce((acc, item) => {
+            const itemTotal = item.price * item.quantity;
+            const addonsTotal = (item.addons || []).reduce((sum, a) => sum + a.price, 0) * item.quantity;
+            return acc + itemTotal + addonsTotal;
+          }, 0);
+
+          await setDoc(cartRef, {
+            userId: currentUser.id,
+            userName: currentUser.name,
+            userEmail: currentUser.email,
+            items: cart,
+            cartTotal: total,
+            customRequest,
+            updatedAt: new Date().toISOString()
+          });
+        } else {
+          // Clean up if cart is emptied
+          await deleteDoc(cartRef);
+        }
+      } catch (err) {
+        console.error("Failed to sync live cart:", err);
+      }
+    };
+    
+    // Use a small timeout to avoid spamming Firestore on rapid clicks
+    const timeoutId = setTimeout(syncCart, 500);
+    return () => clearTimeout(timeoutId);
+  }, [cart, customRequest, currentUser]);
 
   const addToCart = (item, quantity = 1, addons = []) => {
     setCart(prev => {
