@@ -24,9 +24,15 @@ service cloud.firestore {
     }
     
     // Metadata (user_counter for generating IDs)
-    match /metadata/{docId} {
+    match /metadata/user_counter {
       // Anyone authenticating needs to be able to increment the counter
       allow read, write: if true;
+    }
+    
+    // Metadata Security Token
+    match /metadata/qr_token {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Menu collections

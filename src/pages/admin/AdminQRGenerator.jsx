@@ -1,17 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Printer, Settings2 } from 'lucide-react';
+import { Printer, Settings2, RefreshCw } from 'lucide-react';
+import { db } from '../../config/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Logo } from '../../components/Logo';
 
 export function AdminQRGenerator() {
   const [tableCount, setTableCount] = useState(15);
   const [domain, setDomain] = useState(window.location.origin);
+  const [qrToken, setQrToken] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrGenerateToken = async () => {
+      try {
+        const tokenRef = doc(db, 'metadata', 'qr_token');
+        const tokenSnap = await getDoc(tokenRef);
+        if (tokenSnap.exists() && tokenSnap.data().token) {
+          setQrToken(tokenSnap.data().token);
+        } else {
+          // Generate a new token if one doesn't exist
+          const newToken = Math.random().toString(36).substring(2, 8);
+          await setDoc(tokenRef, { token: newToken, updatedAt: new Date().toISOString() });
+          setQrToken(newToken);
+        }
+      } catch (err) {
+        console.error("Error fetching QR token:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrGenerateToken();
+  }, []);
+
+  const handleResetToken = async () => {
+    if (window.confirm("WARNING: This will instantly invalidate all existing printed QR codes. Are you sure?")) {
+      try {
+        const newToken = Math.random().toString(36).substring(2, 8);
+        const tokenRef = doc(db, 'metadata', 'qr_token');
+        await setDoc(tokenRef, { token: newToken, updatedAt: new Date().toISOString() });
+        setQrToken(newToken);
+        alert("Success! Security token has been reset. Please print the new QR codes.");
+      } catch (err) {
+        console.error("Error resetting token:", err);
+        alert("Failed to reset token.");
+      }
+    }
+  };
 
   const handlePrint = () => {
     window.print();
   };
 
   const tables = Array.from({ length: tableCount }, (_, i) => i + 1);
+
+  if (loading) {
+    return <div className="p-8 text-center text-dark/60">Loading QR Generator...</div>;
+  }
 
   return (
     <div className="space-y-8 bg-cream min-h-screen">
@@ -47,19 +92,28 @@ export function AdminQRGenerator() {
           </div>
         </div>
 
-        <button 
-          onClick={handlePrint}
-          className="bg-accent hover:bg-accent-hover text-dark px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 whitespace-nowrap"
-        >
-          <Printer className="w-5 h-5" />
-          Print QR Codes
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button 
+            onClick={handleResetToken}
+            className="bg-red-100 hover:bg-red-200 text-red-700 px-6 py-3 rounded-full font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+          >
+            <RefreshCw className="w-5 h-5" />
+            Reset Security Token
+          </button>
+          <button 
+            onClick={handlePrint}
+            className="bg-accent hover:bg-accent-hover text-dark px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+          >
+            <Printer className="w-5 h-5" />
+            Print QR Codes
+          </button>
+        </div>
       </div>
 
       {/* QR Codes Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:grid-cols-2 print:gap-4 print:p-0">
         {tables.map(number => {
-          const url = `${domain.replace(/\/$/, '')}/table/${number}`;
+          const url = `${domain.replace(/\/$/, '')}/table/${number}?token=${qrToken}`;
           return (
             <div 
               key={number} 

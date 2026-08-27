@@ -1,68 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-
-// Hardcoded restaurant coordinates for Geolocation check
-const RESTAURANT_LAT = 19.0760; // Placeholder: Mumbai
-const RESTAURANT_LNG = 72.8777;
-const MAX_DISTANCE_KM = 0.5; // Within 500 meters
-
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function deg2rad(deg) {
-  return deg * (Math.PI / 180);
-}
+import { MapPin, CheckCircle2, AlertCircle, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { db } from '../config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export function TableQR() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState('Checking location...');
+  const location = useLocation();
+  const [status, setStatus] = useState('Verifying table QR code...');
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check if the user is near the restaurant
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const distance = getDistanceFromLatLonInKm(RESTAURANT_LAT, RESTAURANT_LNG, latitude, longitude);
+    const verifyToken = async () => {
+      try {
+        const queryParams = new URLSearchParams(location.search);
+        const urlToken = queryParams.get('token');
 
-          if (distance <= MAX_DISTANCE_KM) {
-            setStatus('Location verified. Redirecting to table menu...');
-            sessionStorage.setItem('ems_table', id);
-            setTimeout(() => navigate('/menu'), 1500);
-          } else {
-            setError('It looks like you are not at the restaurant. Redirecting to standard menu...');
-            sessionStorage.removeItem('ems_table');
-            setTimeout(() => navigate('/menu'), 2500);
-          }
-        },
-        (err) => {
-          console.warn('Geolocation error:', err);
-          // Fallback: If they deny location, we assume remote access for security, or we can just ask them.
-          // For now, strip table and redirect as per instructions.
-          setError('Location access denied. Redirecting to standard menu...');
-          sessionStorage.removeItem('ems_table');
-          setTimeout(() => navigate('/menu'), 2500);
+        if (!urlToken) {
+          throw new Error('Invalid QR Code. Please scan the actual QR code on your table.');
         }
-      );
-    } else {
-      setError('Geolocation not supported. Redirecting to standard menu...');
-      sessionStorage.removeItem('ems_table');
-      setTimeout(() => navigate('/menu'), 2500);
-    }
-  }, [id, navigate]);
+
+        const tokenRef = doc(db, 'metadata', 'qr_token');
+        const tokenSnap = await getDoc(tokenRef);
+
+        if (tokenSnap.exists() && tokenSnap.data().token === urlToken) {
+          // Token is valid!
+          setStatus('Verified! Redirecting to menu...');
+          sessionStorage.setItem('ems_table', id);
+          setTimeout(() => navigate('/menu'), 1500);
+        } else {
+          // Token mismatch (probably admin reset it)
+          throw new Error('This QR code has expired or is invalid. Please ask the staff for a new one.');
+        }
+      } catch (err) {
+        console.error('QR Verification error:', err);
+        setError(err.message || 'Failed to verify QR code.');
+        sessionStorage.removeItem('ems_table');
+        setTimeout(() => navigate('/menu'), 3000);
+      }
+    };
+
+    verifyToken();
+  }, [id, navigate, location]);
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-cream px-4">
@@ -74,7 +55,7 @@ export function TableQR() {
         {!error ? (
           <>
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
-              <MapPin className="w-8 h-8 text-primary" />
+              <ShieldCheck className="w-8 h-8 text-primary" />
             </div>
             <h2 className="font-heading font-black text-2xl text-dark">Table {id}</h2>
             <p className="text-dark/70 text-sm font-medium flex items-center justify-center gap-2">
@@ -85,9 +66,9 @@ export function TableQR() {
         ) : (
           <>
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-              <AlertCircle className="w-8 h-8 text-primary" />
+              <ShieldAlert className="w-8 h-8 text-red-600" />
             </div>
-            <h2 className="font-heading font-black text-2xl text-dark">Remote Access</h2>
+            <h2 className="font-heading font-black text-2xl text-dark">Access Denied</h2>
             <p className="text-dark/70 text-sm font-medium">
               {error}
             </p>

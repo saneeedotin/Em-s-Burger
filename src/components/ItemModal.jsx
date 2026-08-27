@@ -30,6 +30,14 @@ export function ItemModal({ item, isOpen, onClose }) {
 
   const handleAddToCart = () => {
     if (quantity === 0) return; // Prevent adding 0 items
+    
+    // Security Check: Only allow adding to cart if they scanned a valid Table QR code
+    const tableNo = sessionStorage.getItem('ems_table');
+    if (!tableNo) {
+      alert("Please scan the QR code at your table to start ordering!");
+      return;
+    }
+
     addToCart(item, quantity, selectedAddons);
     setAddedAnimation(true);
     setTimeout(() => {
