@@ -146,12 +146,15 @@ export function Hero() {
               <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
-          <Link to="/locations">
-            <button className="flex items-center gap-2 bg-transparent border border-cream/35 hover:border-cream text-cream font-heading font-black text-sm uppercase tracking-wide px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-cream/5">
-              <MapPin className="w-4 h-4" />
-              Locate Em's
-            </button>
-          </Link>
+          <a
+            href="https://www.google.com/maps/search/?api=1&query=Em%E2%80%99s+Burger+-+Burgers+built+to+hit,+Shop+no,+20+road,+Wadavli,+Borla,+koliwada,+Chembur,+Mumbai,+Maharashtra+400074"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 bg-transparent border border-cream/35 hover:border-cream text-cream font-heading font-black text-sm uppercase tracking-wide px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-cream/5 active:scale-95"
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Locate Em's</span>
+          </a>
         </div>
 
       </div>
@@ -294,11 +297,15 @@ export function Hero() {
               Explore Full Menu <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
-          <Link to="/locations">
-            <button className="w-full flex items-center justify-center gap-2 border border-cream/30 text-cream font-heading font-black text-sm uppercase tracking-wide py-3.5 rounded-full">
-              <MapPin className="w-4 h-4" /> Locate Em's
-            </button>
-          </Link>
+          <a
+            href="https://www.google.com/maps/search/?api=1&query=Em%E2%80%99s+Burger+-+Burgers+built+to+hit,+Shop+no,+20+road,+Wadavli,+Borla,+koliwada,+Chembur,+Mumbai,+Maharashtra+400074"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-2 border border-cream/30 text-cream font-heading font-black text-sm uppercase tracking-wide py-3.5 rounded-full hover:bg-cream/10 active:scale-95 transition-all"
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Locate Em's</span>
+          </a>
         </div>
       </div>
     </section>

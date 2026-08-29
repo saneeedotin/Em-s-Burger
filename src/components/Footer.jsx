@@ -86,7 +86,7 @@ export function Footer() {
                 Support
               </h4>
               <ul className={`space-y-3 text-sm font-medium ${theme.linkMuted}`}>
-                <li><a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Directions</a></li>
+                <li><a href="https://www.google.com/maps/search/?api=1&query=Em%E2%80%99s+Burger+-+Burgers+built+to+hit,+Shop+no,+20+road,+Wadavli,+Borla,+koliwada,+Chembur,+Mumbai,+Maharashtra+400074" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Directions</a></li>
                 <li><a href="tel:+919820098200" className={`${theme.linkHover} transition-colors`}>Call Us</a></li>
                 <li><Link to="/privacy" className={`${theme.linkHover} transition-colors`}>Privacy Policy</Link></li>
                 <li><a href="https://zomato.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Zomato</a></li>
