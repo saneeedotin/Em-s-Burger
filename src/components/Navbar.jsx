@@ -145,15 +145,15 @@ export function Navbar() {
             </NavLink>
           )}
 
-          {/* Order Online Button */}
+          {/* Order on Zomato Button */}
           <a
-            href="https://www.zomato.com"
+            href="https://www.zomato.com/mumbai/ems-burgers-chembur/"
             target="_blank"
             rel="noopener noreferrer"
             className="group relative inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-dark font-heading font-bold px-4 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 text-sm"
           >
             <ShoppingBag className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            <span>Order Online</span>
+            <span>Order on Zomato</span>
           </a>
 
         </div>
@@ -272,14 +272,14 @@ export function Navbar() {
 
               <div className="pt-2">
                 <a
-                  href="https://www.zomato.com"
+                  href="https://www.zomato.com/mumbai/ems-burgers-chembur/"
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setIsOpen(false)}
                   className="w-full flex items-center justify-center gap-2 bg-dark text-cream font-heading font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:bg-black transition-all"
                 >
-                  <ShoppingBag className="w-5 h-5" />
-                  <span>Order on Zomato / Swiggy</span>
+                  <ShoppingBag className="w-5 h-5 text-accent" />
+                  <span>Order on Zomato</span>
                 </a>
               </div>
             </div>
