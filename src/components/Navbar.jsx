@@ -5,7 +5,6 @@ import { Menu, X, ShoppingBag, User, LogOut, LayoutDashboard, Heart, Sparkles, C
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
 import { useVegMode } from '../context/VegModeContext';
-import { StoreStatusBadge } from './StoreStatusBadge';
 import FlowingMenu from './FlowingMenu';
 
 export function Navbar() {
@@ -69,9 +68,6 @@ export function Navbar() {
         {/* Desktop Auth & Order Buttons */}
         <div className="hidden md:flex items-center gap-3">
           
-          {/* Live Store Status Badge */}
-          <StoreStatusBadge size="sm" className="bg-cream/15 text-cream border-cream/20" />
-
           {/* Veg Mode Toggle */}
           <button
             onClick={toggleVegMode}
@@ -247,11 +243,6 @@ export function Navbar() {
                   </button>
                 </div>
               )}
-
-              {/* Mobile Store Status & Veg Mode */}
-              <div className="flex items-center justify-center w-full">
-                <StoreStatusBadge className="bg-cream/15 text-cream border-cream/20 w-full justify-center py-2.5" />
-              </div>
 
               {/* Mobile Veg Mode Toggle */}
               <button
