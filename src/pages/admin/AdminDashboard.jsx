@@ -3,9 +3,10 @@ import { db, isFirebaseConfigured } from '../../config/firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { 
   Search, User, Award, ShieldAlert, Ban, Check, X, 
-  ShoppingBag, Mail, Phone, Calendar, ArrowRight, Hash, Sparkles, Plus, Minus
+  ShoppingBag, Mail, Phone, Calendar, ArrowRight, Hash, Sparkles, Plus, Minus, Flame, Moon, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStoreStatus } from '../../context/StoreStatusContext';
 
 const CupSodaIcon = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -25,6 +26,13 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'banned'
   const [toastMessage, setToastMessage] = useState('');
+
+  const { isOpen, customMessage, updateStoreStatus, toggleStoreStatus } = useStoreStatus();
+  const [storeMsgInput, setStoreMsgInput] = useState(customMessage || '');
+
+  useEffect(() => {
+    setStoreMsgInput(customMessage || '');
+  }, [customMessage]);
 
   const latestFsProfilesRef = useRef([]);
 
@@ -205,6 +213,83 @@ export function AdminDashboard() {
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* 🏪 Kitchen & Store Availability Control */}
+      <div className={`p-6 sm:p-7 rounded-3xl border-2 shadow-sm transition-all ${
+        isOpen 
+          ? 'bg-emerald-500/5 border-emerald-500/30' 
+          : 'bg-red-500/5 border-red-500/30'
+      }`}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex h-3 w-3">
+                {isOpen && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                )}
+                <span className={`relative inline-flex rounded-full h-3 w-3 ${isOpen ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+              </span>
+              <h3 className="font-heading font-black text-xl text-dark uppercase tracking-tight">
+                Store Status: {isOpen ? '🟢 Currently OPEN' : '🔴 Currently CLOSED'}
+              </h3>
+            </div>
+            <p className="text-xs text-dark/70 font-medium">
+              Controls the live "Store Open / Store Closed" indicator on the Homepage and Navbar across all customers.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={async () => {
+                await toggleStoreStatus();
+                showToast(isOpen ? 'Store marked as CLOSED.' : 'Store marked as OPEN.');
+              }}
+              className={`px-6 py-3 rounded-2xl font-heading font-black text-xs uppercase tracking-wider shadow-md transition-all active:scale-95 flex items-center gap-2 ${
+                isOpen
+                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
+            >
+              {isOpen ? (
+                <>
+                  <Moon className="w-4 h-4" />
+                  <span>Switch to Store Closed</span>
+                </>
+              ) : (
+                <>
+                  <Flame className="w-4 h-4" />
+                  <span>Switch to Store Open</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Custom Status Announcement Input */}
+        <div className="mt-5 pt-4 border-t border-dark/10 flex flex-col sm:flex-row gap-3 items-center">
+          <div className="flex-1 w-full">
+            <label className="block text-[11px] font-extrabold uppercase tracking-wider text-dark/60 mb-1">
+              Live Announcement / Hours Note:
+            </label>
+            <input
+              type="text"
+              value={storeMsgInput}
+              onChange={(e) => setStoreMsgInput(e.target.value)}
+              placeholder="e.g. Grill is Sizzling! Walk-ins & Table Orders Welcome"
+              className="w-full px-4 py-2.5 rounded-xl border border-dark/15 bg-white text-xs font-medium text-dark focus:outline-none focus:border-primary"
+            />
+          </div>
+          <button
+            onClick={async () => {
+              await updateStoreStatus(isOpen, storeMsgInput);
+              showToast('Live announcement message updated!');
+            }}
+            className="w-full sm:w-auto mt-auto py-2.5 px-5 rounded-xl bg-dark hover:bg-black text-cream font-heading font-black text-xs uppercase tracking-wider shadow-sm transition-all"
+          >
+            Save Message
+          </button>
+        </div>
+      </div>
 
       {/* Live Active Carts Monitor */}
       <div className="space-y-4">

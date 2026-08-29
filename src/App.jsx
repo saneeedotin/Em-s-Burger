@@ -6,6 +6,7 @@ import { VegModeProvider } from './context/VegModeContext';
 import { CartProvider } from './context/CartContext';
 import { MenuProvider } from './context/MenuContext';
 import { ActiveOrderProvider } from './context/ActiveOrderContext';
+import { StoreStatusProvider } from './context/StoreStatusContext';
 import { RequireAuth } from './components/RequireAuth';
 import { RequireAdmin } from './components/RequireAdmin';
 import { SmoothScroll } from './components/SmoothScroll';
@@ -61,9 +62,10 @@ export function App() {
         <VegModeProvider>
           <CartProvider>
             <ActiveOrderProvider>
-              <LoadingScreen />
-              {!isAdmin && <BurgerCursor />}
-              <SmoothScroll>
+              <StoreStatusProvider>
+                <LoadingScreen />
+                {!isAdmin && <BurgerCursor />}
+                <SmoothScroll>
                 <ScrollToTop />
                 
                 {isAdmin ? (
@@ -122,6 +124,7 @@ export function App() {
                   </div>
                 )}
               </SmoothScroll>
+              </StoreStatusProvider>
             </ActiveOrderProvider>
           </CartProvider>
         </VegModeProvider>

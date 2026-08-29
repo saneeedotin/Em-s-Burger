@@ -4,6 +4,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, MapPin, Heart, Star } from 'lucide-react';
+import { StoreStatusBadge } from './StoreStatusBadge';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -101,11 +102,12 @@ export function Hero() {
                       pt-8 lg:pt-0
                       w-full lg:w-[52%]">
 
-        {/* Badge */}
-        <div className="h-badge mb-5 pointer-events-auto w-max">
-          <span className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border border-cream/35 text-cream font-heading font-bold text-[11px] sm:text-xs uppercase tracking-[0.12em]">
+        {/* Badge & Live Store Status */}
+        <div className="h-badge mb-5 pointer-events-auto flex items-center flex-wrap gap-2.5 w-max">
+          <StoreStatusBadge className="bg-cream/90 text-dark border-cream shadow-lg" />
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cream/35 text-cream font-heading font-bold text-[11px] sm:text-xs uppercase tracking-[0.12em] backdrop-blur-sm">
             <Heart className="w-3 h-3 fill-accent text-accent flex-shrink-0" />
-            Chembur's Most Loved Burger Spot
+            Chembur Camp, Mumbai
           </span>
         </div>
 
@@ -250,11 +252,12 @@ export function Hero() {
           MOBILE LAYOUT — stacked, no absolute positioning
       ════════════════════════════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col justify-between h-full p-6 overflow-y-auto">
-        {/* Badge */}
-        <div className="mb-3">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cream/35 text-cream font-heading font-bold text-[10px] uppercase tracking-[0.12em]">
-            <Heart className="w-3 h-3 fill-accent text-accent" />
-            Chembur's Most Loved Burger Spot
+        {/* Badge & Live Store Status */}
+        <div className="mb-3 flex items-center flex-wrap gap-2">
+          <StoreStatusBadge className="bg-cream text-dark border-cream shadow-md scale-95 origin-left" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-cream/35 text-cream font-heading font-bold text-[10px] uppercase tracking-[0.12em]">
+            <Heart className="w-2.5 h-2.5 fill-accent text-accent" />
+            Chembur, Mumbai
           </span>
         </div>
         {/* Headline */}

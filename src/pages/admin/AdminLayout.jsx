@@ -1,10 +1,12 @@
 import React from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Award, LogOut, Store, Search, QrCode, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Users, Award, LogOut, Store, Search, QrCode, MessageSquare, Flame, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useStoreStatus } from '../../context/StoreStatusContext';
 
 export function AdminLayout() {
   const { currentUser } = useAuth();
+  const { isOpen, toggleStoreStatus } = useStoreStatus();
 
   return (
     <div className="min-h-screen bg-cream flex">
@@ -96,7 +98,21 @@ export function AdminLayout() {
             EM's Burger Management
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-dark/60">
+            {/* Quick Store Availability Switch */}
+            <button
+              onClick={toggleStoreStatus}
+              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-heading font-black tracking-wider uppercase border shadow-sm transition-all active:scale-95 ${
+                isOpen 
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/20' 
+                  : 'bg-red-500/10 border-red-500/30 text-red-700 hover:bg-red-500/20'
+              }`}
+              title="Click to toggle store open/close status"
+            >
+              <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+              <span>{isOpen ? 'Store: Open' : 'Store: Closed'}</span>
+            </button>
+
+            <span className="text-sm font-medium text-dark/60 hidden sm:inline">
               Logged in as: <strong className="text-dark">{currentUser?.name || 'Admin'}</strong>
             </span>
           </div>

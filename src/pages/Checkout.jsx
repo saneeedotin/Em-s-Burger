@@ -8,6 +8,7 @@ import {
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useActiveOrder } from '../context/ActiveOrderContext';
+import { useStoreStatus } from '../context/StoreStatusContext';
 import { db, isFirebaseConfigured } from '../config/firebase';
 import { collection, addDoc, doc, onSnapshot, runTransaction } from 'firebase/firestore';
 
@@ -41,6 +42,7 @@ export function Checkout() {
   const { cart, cartTotal, clearCart, customRequest } = useCart();
   const { currentUser } = useAuth();
   const { registerActiveOrder, activeOrder, timeLeft } = useActiveOrder();
+  const { isOpen: isStoreOpen, customMessage: storeMessage } = useStoreStatus();
   
   // Retrieve table from storage
   const [tableId, setTableId] = useState(() => {
@@ -588,18 +590,26 @@ export function Checkout() {
                 <span className="text-primary text-2xl">₹{total}</span>
               </div>
             </div>
+
+            {!isStoreOpen && (
+              <div className="mt-4 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-800 text-xs font-bold text-center">
+                🔴 Kitchen is currently closed for new orders. Reopening at 12:00 PM.
+              </div>
+            )}
           </div>
 
           <button
             onClick={handlePlaceOrder}
-            disabled={isSubmitting}
-            className="w-full mt-6 py-4 rounded-full bg-primary hover:bg-primary-hover text-cream font-heading font-bold text-base shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2"
+            disabled={isSubmitting || !isStoreOpen}
+            className="w-full mt-6 py-4 rounded-full bg-primary hover:bg-primary-hover text-cream font-heading font-bold text-base shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
                 <span>Processing Order...</span>
               </>
+            ) : !isStoreOpen ? (
+              <span>Kitchen Closed (Opens 12 PM)</span>
             ) : (
               <span>Place Order • ₹{total}</span>
             )}
