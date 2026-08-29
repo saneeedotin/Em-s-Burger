@@ -88,6 +88,7 @@ export function Footer() {
               <ul className={`space-y-3 text-sm font-medium ${theme.linkMuted}`}>
                 <li><a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Directions</a></li>
                 <li><a href="tel:+919820098200" className={`${theme.linkHover} transition-colors`}>Call Us</a></li>
+                <li><Link to="/privacy" className={`${theme.linkHover} transition-colors`}>Privacy Policy</Link></li>
                 <li><a href="https://zomato.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Zomato</a></li>
                 <li><a href="https://swiggy.com" target="_blank" rel="noopener noreferrer" className={`${theme.linkHover} transition-colors`}>Swiggy</a></li>
               </ul>

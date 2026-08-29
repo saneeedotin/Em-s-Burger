@@ -29,6 +29,8 @@ import { GalleryPage } from './pages/GalleryPage';
 import { TableQR } from './pages/TableQR';
 import { Checkout } from './pages/Checkout';
 import { WhileYouWait } from './pages/WhileYouWait';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { NotFound } from './pages/NotFound';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -107,6 +109,8 @@ export function App() {
                             />
                             <Route path="/checkout" element={<Checkout />} />
                             <Route path="/while-you-wait" element={<WhileYouWait />} />
+                            <Route path="/privacy" element={<PrivacyPolicy />} />
+                            <Route path="*" element={<NotFound />} />
                           </Routes>
                         </PageTransition>
                       </AnimatePresence>
