@@ -106,8 +106,14 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    // Safety timer: unlock loading within 600ms so website never blocks if Brave Shields delays Auth
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 600);
+
     if (!isFirebaseConfigured) {
       setLoading(false);
+      clearTimeout(safetyTimer);
       return;
     }
 
@@ -420,7 +426,7 @@ export function AuthProvider({ children }) {
         isFirebaseConfigured
       }}
     >
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

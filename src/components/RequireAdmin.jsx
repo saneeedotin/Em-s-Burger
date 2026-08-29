@@ -7,7 +7,12 @@ export function RequireAdmin({ children }) {
   const location = useLocation();
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-cream">Loading...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-cream text-dark gap-3">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <span className="font-heading font-black text-xs uppercase tracking-wider text-primary">Verifying Admin Access...</span>
+      </div>
+    );
   }
 
   if (!currentUser || currentUser.role !== 'admin') {
