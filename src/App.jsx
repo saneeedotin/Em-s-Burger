@@ -31,6 +31,7 @@ import { TableQR } from './pages/TableQR';
 import { Checkout } from './pages/Checkout';
 import { WhileYouWait } from './pages/WhileYouWait';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { LocationPage } from './pages/LocationPage';
 import { NotFound } from './pages/NotFound';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
@@ -112,8 +113,10 @@ export function App() {
                             <Route path="/checkout" element={<Checkout />} />
                             <Route path="/while-you-wait" element={<WhileYouWait />} />
                             <Route path="/privacy" element={<PrivacyPolicy />} />
-                            <Route path="/locations" element={<Navigate to="/contact" replace />} />
-                            <Route path="/location" element={<Navigate to="/contact" replace />} />
+                            <Route path="/location" element={<LocationPage />} />
+                            <Route path="/locations" element={<LocationPage />} />
+                            <Route path="/map" element={<LocationPage />} />
+                            <Route path="/maps" element={<LocationPage />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </PageTransition>
