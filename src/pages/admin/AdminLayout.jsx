@@ -101,14 +101,19 @@ export function AdminLayout() {
             {/* Quick Store Availability Switch */}
             <button
               onClick={toggleStoreStatus}
-              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-heading font-black tracking-wider uppercase border shadow-sm transition-all active:scale-95 ${
+              className={`inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-xs font-heading font-black tracking-wider uppercase border shadow-sm transition-all active:scale-95 cursor-pointer select-none ${
                 isOpen 
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/20' 
-                  : 'bg-red-500/10 border-red-500/30 text-red-700 hover:bg-red-500/20'
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-800 hover:bg-emerald-500/25' 
+                  : 'bg-red-500/15 border-red-500/40 text-red-800 hover:bg-red-500/25'
               }`}
-              title="Click to toggle store open/close status"
+              title="Click to toggle Store OPEN / CLOSED"
             >
-              <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+              <span className="relative flex h-2.5 w-2.5">
+                {isOpen && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                )}
+                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isOpen ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+              </span>
               <span>{isOpen ? 'Store: Open' : 'Store: Closed'}</span>
             </button>
 
