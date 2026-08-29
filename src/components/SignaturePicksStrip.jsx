@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -13,23 +13,25 @@ gsap.registerPlugin(ScrollTrigger);
 
 export function SignaturePicksStrip() {
   const sectionRef = useRef(null);
+  const navigate = useNavigate();
   const { items: MENU_ITEMS } = useMenu();
 
   const signatureItems = MENU_ITEMS.filter((item) => item.isSignature).slice(0, 6);
 
+  // Slides for 3D Carousel (Without the Price/Highlight box)
   const slides = signatureItems.map((item) => ({
+    id: item.id,
     src: item.image,
     alt: item.name,
     title: item.name,
     subtitle: item.description,
-    meta: [
-      { label: "Price", value: `₹${item.price}` },
-      ...(item.badge ? [{ label: "Highlight", value: item.badge }] : [])
-    ]
+    onClick: () => navigate(`/menu?item=${encodeURIComponent(item.name)}`)
   }));
 
+  // Items for Flowing Marquee Menu & Mobile List
   const flowingItems = signatureItems.map((item) => ({
-    link: '#',
+    id: item.id,
+    link: `/menu?item=${encodeURIComponent(item.name)}`,
     text: item.name,
     image: item.image
   }));
@@ -85,20 +87,22 @@ export function SignaturePicksStrip() {
             marqueeBgColor="#DB3927"
             marqueeTextColor="#FEF7EB"
             borderColor="rgba(219, 57, 39, 0.2)"
+            onItemClick={(item) => navigate(item.link || `/menu?item=${encodeURIComponent(item.text)}`)}
           />
         </div>
 
-        {/* Mobile Replacement List */}
+        {/* Mobile Replacement List (Click to view item in Menu) */}
         <div className="md:hidden mt-10 rounded-[32px] overflow-hidden shadow-2xl border-2 border-[#DB3927]/20 bg-[#FEF7EB] flex flex-col">
           {flowingItems.map((item, idx) => (
             <div 
               key={idx}
-              className="px-6 py-5 border-b border-[#DB3927]/10 last:border-b-0 flex items-center justify-between active:bg-[#DB3927]/5 transition-colors cursor-pointer"
+              onClick={() => navigate(item.link || `/menu?item=${encodeURIComponent(item.text)}`)}
+              className="px-6 py-5 border-b border-[#DB3927]/10 last:border-b-0 flex items-center justify-between active:bg-[#DB3927]/10 hover:bg-[#DB3927]/5 transition-colors cursor-pointer group"
             >
-              <span className="font-heading font-black text-2xl text-[#DB3927] uppercase leading-tight pr-4">
+              <span className="font-heading font-black text-xl sm:text-2xl text-[#DB3927] uppercase leading-tight pr-4 group-hover:underline">
                 {item.text}
               </span>
-              <ArrowRight className="w-6 h-6 text-[#DB3927] shrink-0 opacity-40" />
+              <ArrowRight className="w-5 h-5 text-[#DB3927] shrink-0 opacity-70 group-hover:translate-x-1 transition-transform" />
             </div>
           ))}
         </div>

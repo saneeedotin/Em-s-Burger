@@ -30,7 +30,7 @@ export function Menu() {
     return localStorage.getItem('ems_table') || sessionStorage.getItem('ems_table') || null;
   });
 
-  // Check URL table parameter on mount
+  // Check URL table and item parameters on mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tableParam = params.get('table');
@@ -39,7 +39,22 @@ export function Menu() {
       sessionStorage.setItem('ems_table', tableParam);
       setActiveTable(tableParam);
     }
-  }, [location.search]);
+
+    const itemParam = params.get('item');
+    if (itemParam && MENU_ITEMS.length > 0) {
+      const decoded = decodeURIComponent(itemParam).toLowerCase();
+      const found = MENU_ITEMS.find(
+        (i) => i.id === itemParam || i.name.toLowerCase() === decoded || i.name.toLowerCase().includes(decoded) || decoded.includes(i.name.toLowerCase())
+      );
+      if (found) {
+        setSelectedItem(found);
+        setTimeout(() => {
+          const el = document.getElementById(`item-${found.id}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+    }
+  }, [location.search, MENU_ITEMS]);
 
   const handleClearTable = () => {
     localStorage.removeItem('ems_table');

@@ -228,8 +228,15 @@ export function CoverflowCarousel({
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`${index + 1} of ${count}`}
+                onClick={() => {
+                  if (index === selected && slide.onClick) {
+                    slide.onClick();
+                  } else {
+                    goTo(index);
+                  }
+                }}
                 className={cn(
-                  "absolute left-1/2 top-0 aspect-square overflow-hidden rounded-2xl bg-muted shadow-xl will-change-transform",
+                  "absolute left-1/2 top-0 aspect-square overflow-hidden rounded-2xl bg-muted shadow-xl will-change-transform cursor-pointer",
                   cardClassName,
                 )}
                 style={{ width: "var(--cf-card)" }}
@@ -272,7 +279,10 @@ export function CoverflowCarousel({
           key={selected}
           className="mt-6 flex flex-col items-center px-6 duration-300 animate-in fade-in"
         >
-          <p className="text-3xl font-heading font-black tracking-tighter text-primary">
+          <p 
+            onClick={active.onClick}
+            className="text-3xl font-heading font-black tracking-tighter text-primary cursor-pointer hover:underline transition-all"
+          >
             {active.title}
           </p>
           {active.subtitle && (
