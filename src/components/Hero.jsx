@@ -103,11 +103,11 @@ export function Hero() {
                       w-full lg:w-[52%]">
 
         {/* Badge & Live Store Status */}
-        <div className="h-badge mb-5 pointer-events-auto flex items-center flex-wrap gap-2.5 w-max">
-          <StoreStatusBadge className="bg-cream/90 text-dark border-cream shadow-lg" />
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cream/35 text-cream font-heading font-bold text-[11px] sm:text-xs uppercase tracking-[0.12em] backdrop-blur-sm">
-            <Heart className="w-3 h-3 fill-accent text-accent flex-shrink-0" />
-            Chembur Camp, Mumbai
+        <div className="h-badge mb-5 pointer-events-auto flex items-center gap-2.5 w-max">
+          <StoreStatusBadge />
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-cream/20 bg-black/10 backdrop-blur-md text-cream/90 font-heading font-medium text-[11px] uppercase tracking-[0.08em]">
+            <Heart className="w-2.5 h-2.5 fill-accent text-accent flex-shrink-0" />
+            Chembur, Mumbai
           </span>
         </div>
 
@@ -253,11 +253,11 @@ export function Hero() {
       ════════════════════════════════════════════════════════════ */}
       <div className="lg:hidden flex flex-col justify-between h-full p-6 overflow-y-auto">
         {/* Badge & Live Store Status */}
-        <div className="mb-3 flex items-center flex-wrap gap-2">
-          <StoreStatusBadge className="bg-cream text-dark border-cream shadow-md scale-95 origin-left" />
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-cream/35 text-cream font-heading font-bold text-[10px] uppercase tracking-[0.12em]">
+        <div className="mb-3 flex items-center gap-2 flex-wrap">
+          <StoreStatusBadge showHours={false} />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-cream/20 bg-black/10 backdrop-blur-md text-cream/90 font-heading font-medium text-[10px] uppercase tracking-[0.08em]">
             <Heart className="w-2.5 h-2.5 fill-accent text-accent" />
-            Chembur, Mumbai
+            Chembur
           </span>
         </div>
         {/* Headline */}
