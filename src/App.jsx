@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { VegModeProvider } from './context/VegModeContext';
 import { CartProvider } from './context/CartContext';
 import { MenuProvider } from './context/MenuContext';
+import { ActiveOrderProvider } from './context/ActiveOrderContext';
 import { RequireAuth } from './components/RequireAuth';
 import { RequireAdmin } from './components/RequireAdmin';
 import { SmoothScroll } from './components/SmoothScroll';
@@ -14,6 +15,7 @@ import { Footer } from './components/Footer';
 import { LoadingScreen } from './components/LoadingScreen';
 import { PageTransition } from './components/PageTransition';
 import { FloatingCart } from './components/FloatingCart';
+import { LiveOrderNavbarPill } from './components/LiveOrderNavbarPill';
 
 import { Home } from './pages/Home';
 import { Menu } from './pages/Menu';
@@ -56,64 +58,67 @@ export function App() {
       <MenuProvider>
         <VegModeProvider>
           <CartProvider>
-            <LoadingScreen />
-        {!isAdmin && <BurgerCursor />}
-        <SmoothScroll>
-          <ScrollToTop />
-          
-          {isAdmin ? (
-            <Routes location={location}>
-              <Route path="/admin" element={
-                <RequireAdmin>
-                  <AdminLayout />
-                </RequireAdmin>
-              }>
-                <Route index element={<AdminDashboard />} />
-                <Route path="orders" element={<AdminOrders />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="loyalty" element={<AdminLoyalty />} />
-                <Route path="menu" element={<AdminMenu />} />
-                <Route path="qr" element={<AdminQRGenerator />} />
-                <Route path="reviews" element={<AdminReviews />} />
-              </Route>
-            </Routes>
-          ) : (
-            <div className="flex flex-col min-h-screen bg-cream doodles-red text-dark font-body">
-              <Navbar />
+            <ActiveOrderProvider>
+              <LoadingScreen />
+              {!isAdmin && <BurgerCursor />}
+              <SmoothScroll>
+                <ScrollToTop />
+                
+                {isAdmin ? (
+                  <Routes location={location}>
+                    <Route path="/admin" element={
+                      <RequireAdmin>
+                        <AdminLayout />
+                      </RequireAdmin>
+                    }>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="orders" element={<AdminOrders />} />
+                      <Route path="users" element={<AdminUsers />} />
+                      <Route path="loyalty" element={<AdminLoyalty />} />
+                      <Route path="menu" element={<AdminMenu />} />
+                      <Route path="qr" element={<AdminQRGenerator />} />
+                      <Route path="reviews" element={<AdminReviews />} />
+                    </Route>
+                  </Routes>
+                ) : (
+                  <div className="flex flex-col min-h-screen bg-cream doodles-red text-dark font-body">
+                    <Navbar />
 
-              <main className="flex-grow">
-                <AnimatePresence mode="wait">
-                  <PageTransition key={location.pathname}>
-                    <Routes location={location}>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/menu" element={<Menu />} />
-                      <Route path="/table/:id" element={<TableQR />} />
-                      <Route path="/gallery" element={<GalleryPage />} />
-                      <Route path="/about" element={<About />} />
-                      <Route path="/contact" element={<Contact />} />
-                      <Route path="/loyalty" element={<Loyalty />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/signup" element={<Signup />} />
-                      <Route
-                        path="/dashboard"
-                        element={
-                          <RequireAuth>
-                            <Dashboard />
-                          </RequireAuth>
-                        }
-                      />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/while-you-wait" element={<WhileYouWait />} />
-                    </Routes>
-                  </PageTransition>
-                </AnimatePresence>
-              </main>
+                    <main className="flex-grow">
+                      <AnimatePresence mode="wait">
+                        <PageTransition key={location.pathname}>
+                          <Routes location={location}>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/menu" element={<Menu />} />
+                            <Route path="/table/:id" element={<TableQR />} />
+                            <Route path="/gallery" element={<GalleryPage />} />
+                            <Route path="/about" element={<About />} />
+                            <Route path="/contact" element={<Contact />} />
+                            <Route path="/loyalty" element={<Loyalty />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/signup" element={<Signup />} />
+                            <Route
+                              path="/dashboard"
+                              element={
+                                <RequireAuth>
+                                  <Dashboard />
+                                </RequireAuth>
+                              }
+                            />
+                            <Route path="/checkout" element={<Checkout />} />
+                            <Route path="/while-you-wait" element={<WhileYouWait />} />
+                          </Routes>
+                        </PageTransition>
+                      </AnimatePresence>
+                    </main>
 
-              <FloatingCart />
-              <Footer />
-            </div>
-          )}
-        </SmoothScroll>
+                    <LiveOrderNavbarPill />
+                    <FloatingCart />
+                    <Footer />
+                  </div>
+                )}
+              </SmoothScroll>
+            </ActiveOrderProvider>
           </CartProvider>
         </VegModeProvider>
       </MenuProvider>

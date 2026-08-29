@@ -162,10 +162,22 @@ export function Hero() {
             3. Melt Mode callout
       ════════════════════════════════════════════════════════════ */}
       <div className="absolute top-0 right-0 h-full w-[55%] lg:w-[52%] pointer-events-none hidden lg:block">
-
-
-
-
+        {/* ── 1. MELT DOWN background typography ── */}
+        <div
+          className="h-parallax-slow absolute top-[6%] right-[8%] select-none pointer-events-none opacity-40 mix-blend-color-burn"
+          style={{ zIndex: 0 }}
+        >
+          <h2
+            className="font-heading font-black leading-[0.8] text-right"
+            style={{
+              fontSize: 'clamp(120px, 14vw, 210px)',
+              color: '#8B180A',
+              WebkitTextStroke: '2px #7A1206',
+            }}
+          >
+            MELT<br />DOWN
+          </h2>
+        </div>
         {/* ── 2. THE BURGER ───────────────────────────────────────── */}
         {/* Preload all images silently */}
         <div className="hidden">

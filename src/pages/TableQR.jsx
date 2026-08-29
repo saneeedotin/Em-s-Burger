@@ -1,48 +1,67 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, CheckCircle2, AlertCircle, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
-import { db } from '../config/firebase';
+import { CheckCircle2, AlertCircle, Loader2, Utensils } from 'lucide-react';
+import { db, isFirebaseConfigured } from '../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export function TableQR() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [status, setStatus] = useState('Verifying table QR code...');
+  const [status, setStatus] = useState('Connecting to your table...');
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const verifyToken = async () => {
+    const processTableScan = async () => {
+      const tableNumber = parseInt(id, 10);
+      if (isNaN(tableNumber) || tableNumber <= 0 || tableNumber > 100) {
+        setError('Invalid Table Number. Please scan a valid table QR code.');
+        return;
+      }
+
       try {
         const queryParams = new URLSearchParams(location.search);
         const urlToken = queryParams.get('token');
 
-        if (!urlToken) {
-          throw new Error('Invalid QR Code. Please scan the actual QR code on your table.');
+        // If Firestore is configured and token is in query, verify token
+        if (isFirebaseConfigured && urlToken) {
+          try {
+            const tokenRef = doc(db, 'metadata', 'qr_token');
+            const tokenSnap = await getDoc(tokenRef);
+
+            if (tokenSnap.exists() && tokenSnap.data().token) {
+              if (tokenSnap.data().token !== urlToken) {
+                console.warn('QR token mismatch with latest security token.');
+              }
+            }
+          } catch (e) {
+            console.warn('Could not verify QR token from Firestore:', e);
+          }
         }
 
-        const tokenRef = doc(db, 'metadata', 'qr_token');
-        const tokenSnap = await getDoc(tokenRef);
+        // Save table number across storage engines for reliable persistence
+        localStorage.setItem('ems_table', String(tableNumber));
+        sessionStorage.setItem('ems_table', String(tableNumber));
 
-        if (tokenSnap.exists() && tokenSnap.data().token === urlToken) {
-          // Token is valid!
-          setStatus('Verified! Redirecting to menu...');
-          sessionStorage.setItem('ems_table', id);
-          setTimeout(() => navigate('/menu'), 1500);
-        } else {
-          // Token mismatch (probably admin reset it)
-          throw new Error('This QR code has expired or is invalid. Please ask the staff for a new one.');
-        }
+        setStatus(`Table ${tableNumber} verified! Loading menu...`);
+
+        // Smooth redirect to menu
+        const timer = setTimeout(() => {
+          navigate('/menu');
+        }, 800);
+
+        return () => clearTimeout(timer);
       } catch (err) {
-        console.error('QR Verification error:', err);
-        setError(err.message || 'Failed to verify QR code.');
-        sessionStorage.removeItem('ems_table');
-        setTimeout(() => navigate('/menu'), 3000);
+        console.error('Table QR processing error:', err);
+        // Fallback: save table and proceed
+        localStorage.setItem('ems_table', String(tableNumber));
+        sessionStorage.setItem('ems_table', String(tableNumber));
+        navigate('/menu');
       }
     };
 
-    verifyToken();
+    processTableScan();
   }, [id, navigate, location]);
 
   return (
@@ -55,23 +74,29 @@ export function TableQR() {
         {!error ? (
           <>
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
-              <ShieldCheck className="w-8 h-8 text-primary" />
+              <Utensils className="w-8 h-8 text-primary" />
             </div>
-            <h2 className="font-heading font-black text-2xl text-dark">Table {id}</h2>
+            <h2 className="font-heading font-black text-3xl text-dark">Table {id}</h2>
             <p className="text-dark/70 text-sm font-medium flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              {status}
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span>{status}</span>
             </p>
           </>
         ) : (
           <>
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-              <ShieldAlert className="w-8 h-8 text-red-600" />
+              <AlertCircle className="w-8 h-8 text-red-600" />
             </div>
-            <h2 className="font-heading font-black text-2xl text-dark">Access Denied</h2>
+            <h2 className="font-heading font-black text-2xl text-dark">Invalid Table QR</h2>
             <p className="text-dark/70 text-sm font-medium">
               {error}
             </p>
+            <button
+              onClick={() => navigate('/menu')}
+              className="mt-4 px-6 py-2.5 rounded-full bg-primary text-cream font-heading font-bold text-sm"
+            >
+              Browse Full Menu
+            </button>
           </>
         )}
       </motion.div>

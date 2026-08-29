@@ -122,6 +122,15 @@ export function CartProvider({ children }) {
     setCustomRequest('');
   };
 
+  const restoreCart = (items = [], request = '') => {
+    if (Array.isArray(items) && items.length > 0) {
+      setCart(items);
+    }
+    if (request) {
+      setCustomRequest(request);
+    }
+  };
+
   const getCartItemCount = (itemId) => {
     return cart
       .filter(c => c.id === itemId)
@@ -143,6 +152,7 @@ export function CartProvider({ children }) {
       removeFromCart,
       updateQuantity,
       clearCart,
+      restoreCart,
       customRequest,
       setCustomRequest,
       cartTotal,

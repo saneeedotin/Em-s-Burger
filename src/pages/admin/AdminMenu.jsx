@@ -1,35 +1,47 @@
 import React, { useState } from 'react';
 import { useMenu } from '../../context/MenuContext';
-import { Plus, Edit2, Trash2, Image as ImageIcon, X, Search, Check, Save } from 'lucide-react';
-import { storage } from '../../config/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Plus, Edit2, Trash2, Image as ImageIcon, X, Search, Check, Save, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { compressImage } from '../../utils/imageCompressor';
 
 export function AdminMenu() {
-  const { items, categories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory } = useMenu();
-  const [activeTab, setActiveTab] = useState('items'); // 'items' or 'categories'
+  const { items, categories, addItem, updateItem, deleteItem } = useMenu();
+  const [activeTab, setActiveTab] = useState('items');
   const [searchTerm, setSearchTerm] = useState('');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null); // null for new item, or item object
+  const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({});
-  const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [imageMode, setImageMode] = useState('file'); // 'file' or 'url'
+  const [toastMessage, setToastMessage] = useState('');
+
+  // Categories for items (excluding 'all')
+  const validCategories = categories.filter(c => c.id !== 'all');
 
   // Filters
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
 
   const openModal = (item = null) => {
     if (item) {
       setEditingItem(item);
-      setFormData(item);
+      setFormData({ 
+        ...item,
+        category: item.category === 'all' ? 'classic' : (item.category || 'classic')
+      });
     } else {
       setEditingItem(null);
       setFormData({
-        id: `item-${Date.now()}`,
+        id: `item_${Date.now()}`,
         name: '',
-        category: categories[0]?.id || 'classic',
+        category: validCategories[0]?.id || 'classic',
         price: '',
         description: '',
         isVeg: false,
@@ -38,6 +50,7 @@ export function AdminMenu() {
         image: ''
       });
     }
+    setIsCompressing(false);
     setIsModalOpen(true);
   };
 
@@ -45,6 +58,7 @@ export function AdminMenu() {
     setIsModalOpen(false);
     setEditingItem(null);
     setFormData({});
+    setIsCompressing(false);
   };
 
   const handleChange = (e) => {
@@ -60,31 +74,29 @@ export function AdminMenu() {
     if (!file) return;
 
     try {
-      setIsUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const storageRef = ref(storage, `menu-images/${fileName}`);
-
-      await uploadBytes(storageRef, file);
-      
-      // Get public URL
-      const publicURL = await getDownloadURL(storageRef);
-
-      setFormData(prev => ({ ...prev, image: publicURL }));
-    } catch (error) {
-      console.error('Error uploading image:', error.message);
-      alert('Error uploading image. Make sure Firebase Storage is configured and rules allow uploads.');
+      setIsCompressing(true);
+      // Fast client-side image compression (~50KB)
+      const compressedDataUrl = await compressImage(file, 900, 900, 0.82);
+      setFormData(prev => ({ ...prev, image: compressedDataUrl }));
+    } catch (err) {
+      console.error('Error compressing image:', err);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData(prev => ({ ...prev, image: event.target.result }));
+      };
+      reader.readAsDataURL(file);
     } finally {
-      setIsUploading(false);
+      setIsCompressing(false);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // basic validation
-    if (!formData.name || !formData.price || !formData.category) return;
+    if (!formData.name || !formData.price || !formData.category) {
+      alert("Please fill in all required fields.");
+      return;
+    }
 
-    // Default placeholder if no image uploaded
     const defaultImage = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80';
 
     const finalItem = {
@@ -94,23 +106,34 @@ export function AdminMenu() {
     };
 
     if (editingItem) {
-      updateItem(finalItem.id, finalItem);
+      await updateItem(finalItem.id, finalItem);
+      showToast(`Updated "${finalItem.name}" successfully!`);
     } else {
-      addItem(finalItem);
+      await addItem(finalItem);
+      showToast(`Created "${finalItem.name}" successfully!`);
     }
+
     closeModal();
   };
 
   return (
     <div className="space-y-8">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl font-heading font-bold text-sm flex items-center gap-2 animate-fadeIn">
+          <Check className="w-5 h-5" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-heading font-black text-dark">Menu Management</h2>
-          <p className="text-dark/60 mt-1">Add, edit, or remove menu items and categories.</p>
+          <p className="text-dark/60 mt-1">Add, edit, or customize menu items with instant real-time sync.</p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-full font-heading font-bold shadow-md transition-transform hover:-translate-y-1"
+          className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-full font-heading font-bold shadow-md transition-transform hover:-translate-y-0.5 active:scale-95"
         >
           <Plus size={20} />
           <span>New Item</span>
@@ -124,7 +147,6 @@ export function AdminMenu() {
         >
           Menu Items ({items.length})
         </button>
-        {/* Simplified tab for now, we'll focus on items */}
       </div>
 
       {activeTab === 'items' && (
@@ -134,17 +156,17 @@ export function AdminMenu() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-dark/40" />
             <input 
               type="text" 
-              placeholder="Search items..."
+              placeholder="Search dishes, burgers..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-white border-2 border-dark/10 rounded-2xl py-3 pl-12 pr-4 font-body outline-none focus:border-primary transition-colors"
+              className="w-full bg-white border-2 border-dark/10 rounded-2xl py-3 pl-12 pr-4 font-body outline-none focus:border-primary transition-colors text-dark"
             />
           </div>
 
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredItems.map(item => (
-              <div key={item.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-dark/5 flex flex-col group hover:shadow-md transition-all">
+              <div key={`${item.id}-${item.image}-${item.price}`} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-dark/5 flex flex-col group hover:shadow-md transition-all">
                 <div className="aspect-video bg-cream-light relative overflow-hidden">
                   {item.image ? (
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
@@ -154,7 +176,7 @@ export function AdminMenu() {
                     </div>
                   )}
                   {item.badge && (
-                    <span className="absolute top-3 right-3 bg-accent text-white text-xs font-bold px-2 py-1 rounded-md">
+                    <span className="absolute top-3 right-3 bg-accent text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
                       {item.badge}
                     </span>
                   )}
@@ -167,14 +189,27 @@ export function AdminMenu() {
                   <p className="text-dark/60 text-sm line-clamp-2 mb-4">{item.description}</p>
                   
                   <div className="mt-auto flex items-center justify-between pt-4 border-t border-dark/5">
-                    <span className={`text-xs font-bold px-2 py-1 rounded-md ${item.isVeg ? 'bg-accent text-dark' : 'bg-primary/10 text-primary'}`}>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-md ${item.isVeg ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
                       {item.isVeg ? 'VEG' : 'NON-VEG'}
                     </span>
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(item)} className="p-2 text-dark/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => openModal(item)} 
+                        className="p-2 text-dark/60 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        title="Edit Item"
+                      >
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => deleteItem(item.id)} className="p-2 text-dark/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => {
+                          if (window.confirm(`Delete ${item.name}?`)) {
+                            deleteItem(item.id);
+                            showToast(`Deleted "${item.name}"`);
+                          }
+                        }} 
+                        className="p-2 text-dark/60 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete Item"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -205,50 +240,89 @@ export function AdminMenu() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Image Upload Area */}
                 <div className="md:col-span-2 space-y-2">
-                  <label className="font-bold text-dark text-sm">Item Image</label>
-                  <div className="relative border-2 border-dashed border-dark/20 rounded-2xl overflow-hidden bg-cream-light hover:bg-cream transition-colors group h-48 flex items-center justify-center">
-                    {formData.image ? (
-                      <>
-                        <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-dark/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <p className="text-white font-bold flex items-center gap-2"><ImageIcon size={20}/> Change Image</p>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center text-dark/40">
-                        <ImageIcon size={40} className="mx-auto mb-2 opacity-50" />
-                        <p className="font-medium text-sm">Click to upload image</p>
-                      </div>
-                    )}
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      disabled={isUploading}
-                    />
-                    {isUploading && (
-                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      </div>
-                    )}
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-dark text-sm">Item Image</label>
+                    <div className="flex gap-2 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setImageMode('file')}
+                        className={`px-2.5 py-1 rounded-md font-bold transition-colors ${imageMode === 'file' ? 'bg-primary text-white' : 'bg-dark/5 text-dark/60'}`}
+                      >
+                        Upload File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImageMode('url')}
+                        className={`px-2.5 py-1 rounded-md font-bold transition-colors ${imageMode === 'url' ? 'bg-primary text-white' : 'bg-dark/5 text-dark/60'}`}
+                      >
+                        Image URL
+                      </button>
+                    </div>
                   </div>
+
+                  {imageMode === 'file' ? (
+                    <div className="relative border-2 border-dashed border-dark/20 rounded-2xl overflow-hidden bg-cream-light hover:bg-cream transition-colors group h-48 flex items-center justify-center">
+                      {formData.image ? (
+                        <>
+                          <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-dark/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-white font-bold flex items-center gap-2"><ImageIcon size={20}/> Change Image</p>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center text-dark/40">
+                          <ImageIcon size={40} className="mx-auto mb-2 opacity-50" />
+                          <p className="font-medium text-sm">Click to choose image file</p>
+                        </div>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={isCompressing}
+                      />
+                      {isCompressing && (
+                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-dark/40" />
+                        <input
+                          type="text"
+                          placeholder="Paste image URL (https://...)"
+                          value={formData.image || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                          className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-dark/15 rounded-xl text-sm font-medium focus:bg-white focus:border-primary outline-none"
+                        />
+                      </div>
+                      {formData.image && (
+                        <div className="h-32 rounded-xl overflow-hidden border border-dark/10">
+                          <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Item Name *</label>
-                  <input type="text" name="name" required value={formData.name || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" />
+                  <input type="text" name="name" required value={formData.name || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-dark" />
                 </div>
                 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Price (₹) *</label>
-                  <input type="number" name="price" required value={formData.price || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" />
+                  <input type="number" name="price" required value={formData.price || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-dark" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Category *</label>
-                  <select name="category" required value={formData.category || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all cursor-pointer">
-                    {categories.map(cat => (
+                  <select name="category" required value={formData.category || 'classic'} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all cursor-pointer font-medium text-dark">
+                    {validCategories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.label}</option>
                     ))}
                   </select>
@@ -256,12 +330,12 @@ export function AdminMenu() {
                 
                 <div className="space-y-2">
                   <label className="font-bold text-dark text-sm">Badge (Optional)</label>
-                  <input type="text" name="badge" placeholder="e.g. Bestseller" value={formData.badge || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" />
+                  <input type="text" name="badge" placeholder="e.g. Bestseller" value={formData.badge || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium text-dark" />
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
                   <label className="font-bold text-dark text-sm">Description</label>
-                  <textarea name="description" rows="3" value={formData.description || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all resize-none"></textarea>
+                  <textarea name="description" rows="3" value={formData.description || ''} onChange={handleChange} className="w-full bg-white shadow-inner border border-dark/10 rounded-xl p-3 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all resize-none font-medium text-dark"></textarea>
                 </div>
 
                 <div className="md:col-span-2 flex gap-6 pt-2">
@@ -291,7 +365,11 @@ export function AdminMenu() {
                 <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-dark/60 hover:text-dark transition-colors">
                   Cancel
                 </button>
-                <button type="submit" disabled={isUploading} className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-xl font-heading font-bold shadow-md transition-transform hover:-translate-y-1 disabled:opacity-50">
+                <button 
+                  type="submit" 
+                  disabled={isCompressing}
+                  className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-xl font-heading font-bold shadow-md transition-transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
+                >
                   <Save size={18} />
                   <span>{editingItem ? 'Save Changes' : 'Create Item'}</span>
                 </button>

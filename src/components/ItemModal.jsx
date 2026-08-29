@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export function ItemModal({ item, isOpen, onClose }) {
   const { addToCart } = useCart();
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [addedAnimation, setAddedAnimation] = useState(false);
-
-  // In a real app, addons would come from the database per category or item
-  // For now, we simulate standard addons for burgers
-  const addons = item?.category === 'burgers' ? [
-    { id: 'a1', name: 'Extra Cheese', price: 30 },
-    { id: 'a2', name: 'Jalapenos', price: 20 },
-    { id: 'a3', name: 'Bacon', price: 60 }
-  ] : [];
-
   const [selectedAddons, setSelectedAddons] = useState([]);
+
+  // Reset state when a new item is selected or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setQuantity(1);
+      setSelectedAddons([]);
+      setAddedAnimation(false);
+    }
+  }, [isOpen, item]);
+
+  // Standard burger addons
+  const burgerCategories = ['classic', 'signatures', 'ufo', 'croissant', 'pull-me-up', 'avocado', 'sliders'];
+  const addons = burgerCategories.includes(item?.category) ? [
+    { id: 'a1', name: 'Extra Cheese Slice', price: 30 },
+    { id: 'a2', name: 'Pickled Jalapenos', price: 20 },
+    { id: 'a3', name: 'Crispy Bacon Strips', price: 60 }
+  ] : [];
 
   if (!item) return null;
 
@@ -29,26 +37,15 @@ export function ItemModal({ item, isOpen, onClose }) {
   };
 
   const handleAddToCart = () => {
-    if (quantity === 0) return; // Prevent adding 0 items
-    
-    // Security Check: Only allow adding to cart if they scanned a valid Table QR code
-    const tableNo = sessionStorage.getItem('ems_table');
-    if (!tableNo) {
-      alert("Please scan the QR code at your table to start ordering!");
-      return;
-    }
+    if (quantity <= 0) return;
 
     addToCart(item, quantity, selectedAddons);
     setAddedAnimation(true);
+    
     setTimeout(() => {
       setAddedAnimation(false);
       onClose();
-      // Reset state for next open
-      setTimeout(() => {
-        setQuantity(0);
-        setSelectedAddons([]);
-      }, 300);
-    }, 800);
+    }, 700);
   };
 
   const addonTotal = selectedAddons.reduce((sum, a) => sum + a.price, 0);
@@ -131,16 +128,17 @@ export function ItemModal({ item, isOpen, onClose }) {
                 {addons.length > 0 && (
                   <div className="space-y-3 pt-4 border-t border-primary/10">
                     <h3 className="font-heading font-bold text-sm uppercase text-dark/60 tracking-wider">
-                      Add-ons
+                      Add-ons & Customizations
                     </h3>
                     <div className="space-y-2">
                       {addons.map(addon => {
                         const isSelected = selectedAddons.some(a => a.id === addon.id);
                         return (
-                          <label
+                          <div
                             key={addon.id}
+                            onClick={() => toggleAddon(addon)}
                             className={`flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-colors ${
-                              isSelected ? 'border-primary bg-primary/5' : 'border-dark/5 hover:border-dark/20'
+                              isSelected ? 'border-primary bg-primary/5' : 'border-dark/10 hover:border-dark/20'
                             }`}
                           >
                             <div className="flex items-center gap-3">
@@ -152,7 +150,7 @@ export function ItemModal({ item, isOpen, onClose }) {
                               <span className="font-medium text-sm text-dark">{addon.name}</span>
                             </div>
                             <span className="font-heading font-bold text-sm text-dark/70">+₹{addon.price}</span>
-                          </label>
+                          </div>
                         );
                       })}
                     </div>
@@ -165,7 +163,7 @@ export function ItemModal({ item, isOpen, onClose }) {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center bg-cream rounded-full border border-dark/10 p-1">
                     <button
-                      onClick={() => setQuantity(Math.max(0, quantity - 1))}
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       className="w-10 h-10 flex items-center justify-center text-dark/70 hover:bg-dark/5 rounded-full transition-colors"
                     >
                       <Minus className="w-4 h-4" />
@@ -192,7 +190,7 @@ export function ItemModal({ item, isOpen, onClose }) {
                     ) : (
                       <>
                         <ShoppingBag className="w-5 h-5" />
-                        Add - ₹{total}
+                        Add • ₹{total}
                       </>
                     )}
                   </button>

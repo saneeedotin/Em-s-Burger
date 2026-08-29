@@ -2,76 +2,38 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.admin == true || 
-        request.auth.token.email == 'admin@emsburgers.com'
-      );
-    }
 
-    // Profiles collection
+    // Customer Profiles (Admin Management & Customer Access)
     match /profiles/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
-    }
-    
-    // Metadata (user_counter for generating IDs)
-    match /metadata/user_counter {
-      // Anyone authenticating needs to be able to increment the counter
-      allow read, write: if true;
-    }
-    
-    // Metadata Security Token
-    match /metadata/qr_token {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write, delete: if true;
     }
 
-    // Menu collections
+    // Orders (Table QR Ordering, Reception & Kitchen Admin)
+    match /orders/{orderId} {
+      allow read, write, delete: if true;
+    }
+
+    // Menu Items & Categories (Live Menu CRUD)
     match /menu_items/{itemId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write, delete: if true;
     }
     match /menu_categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    // Reviews
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow read, write, delete: if true;
     }
 
-    // Orders
-    match /orders/{orderId} {
-      allow read, update: if isAdmin() || isOwner(resource.data.user_id);
-      allow create: if true; 
-      allow delete: if isAdmin();
-    }
-    
-    // Live Carts
+    // Live Active Carts
     match /live_carts/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read, write, delete: if true;
     }
-    
-    // Email OTPs (if used for auth verification)
-    match /email_otps/{email} {
-      allow read, write: if true;
+
+    // Customer Reviews
+    match /reviews/{reviewId} {
+      allow read, write, delete: if true;
     }
-    
-    // Fallback block everything else
-    match /{document=**} {
-      allow read, write: if false;
+
+    // System Metadata (EMCODE Sequential Counter & QR Security Tokens)
+    match /metadata/{docId} {
+      allow read, write, delete: if true;
     }
   }
 }

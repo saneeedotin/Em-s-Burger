@@ -23,22 +23,23 @@ export function Login() {
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [forgotError, setForgotError] = useState('');
 
-  const { login, loginWithGoogle, resetPassword, currentUser } = useAuth();
+  const { login, loginWithGoogle, resetPassword, currentUser, isFirebaseConfigured } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTarget = searchParams.get('redirect') || location.state?.from?.pathname || '/dashboard';
 
-  // Auto-redirect if user is already logged in (e.g. after Google popup)
+  // Auto-redirect if user is already logged in
   useEffect(() => {
     if (currentUser && currentUser.role !== 'admin') {
       setSuccess(true);
-      setTimeout(() => navigate(from, { replace: true }), 600);
+      setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
     } else if (currentUser && currentUser.role === 'admin') {
       setSuccess(true);
-      setTimeout(() => navigate('/admin', { replace: true }), 600);
+      setTimeout(() => navigate('/admin', { replace: true }), 500);
     }
-  }, [currentUser, navigate, from]);
+  }, [currentUser, navigate, redirectTarget]);
 
   const handleDirectForgotPassword = async () => {
     if (!email) {
@@ -93,14 +94,14 @@ export function Login() {
     }
 
     // Admin direct bypass
-    if (email.toLowerCase() === 'admin@emsburgers.com' || email.toLowerCase() === 'admin@emsburger.com' || email.toLowerCase() === 'demo@emsburgers.com') {
+    if (email.toLowerCase() === 'admin@emsburgers.com' || email.toLowerCase() === 'admin@emsburger.com') {
       const res = await login(email, password);
       if (res.success) {
         setSuccess(true);
         if (res.isAdmin) {
-          setTimeout(() => navigate('/admin', { replace: true }), 600);
+          setTimeout(() => navigate('/admin', { replace: true }), 500);
         } else {
-          setTimeout(() => navigate(from, { replace: true }), 600);
+          setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
         }
       } else {
         setError(res.message);
@@ -118,11 +119,11 @@ export function Login() {
       if (otpRes.code) setOtpHint(otpRes.code);
       setShowOtpModal(true);
     } else {
-      // Direct login fallback if email dispatch failed
+      // Direct login fallback if email service is unavailable
       const res = await login(email, password);
       if (res.success) {
         setSuccess(true);
-        setTimeout(() => navigate(from, { replace: true }), 600);
+        setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
       } else {
         setError(res.message);
         triggerShake();
@@ -142,9 +143,9 @@ export function Login() {
       setShowOtpModal(false);
       setSuccess(true);
       if (res.isAdmin) {
-        setTimeout(() => navigate('/admin', { replace: true }), 600);
+        setTimeout(() => navigate('/admin', { replace: true }), 500);
       } else {
-        setTimeout(() => navigate(from, { replace: true }), 600);
+        setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
       }
       return { success: true };
     } else {
@@ -162,9 +163,9 @@ export function Login() {
     if (res.success) {
       setSuccess(true);
       if (res.isAdmin) {
-        setTimeout(() => navigate('/admin', { replace: true }), 600);
+        setTimeout(() => navigate('/admin', { replace: true }), 500);
       } else {
-        setTimeout(() => navigate(from, { replace: true }), 600);
+        setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
       }
     } else {
       setError(res.message);
@@ -202,6 +203,19 @@ export function Login() {
             Access your loyalty punch card, orders & favourite burgers.
           </p>
         </div>
+
+        {/* Configuration Notice if not set up */}
+        {!isFirebaseConfigured && (
+          <div className="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-medium space-y-1">
+            <div className="font-bold flex items-center gap-1.5 text-amber-800">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Firebase Credentials Required</span>
+            </div>
+            <p className="text-[11px] text-amber-700 leading-relaxed">
+              Add your Firebase API keys to <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">.env</code> (see <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">.env.example</code>) to enable cloud authentication.
+            </p>
+          </div>
+        )}
 
         {/* Success Overlay */}
         {success ? (
@@ -302,7 +316,7 @@ export function Login() {
             {/* Footer Sign up prompt */}
             <div className="text-center pt-2 border-t border-primary/10 text-xs font-medium text-dark/70">
               Don't have an account yet?{' '}
-              <Link to="/signup" className="text-primary font-heading font-bold hover:underline">
+              <Link to={`/signup${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect'))}` : ''}`} className="text-primary font-heading font-bold hover:underline">
                 Create Account
               </Link>
             </div>
@@ -432,4 +446,3 @@ export function Login() {
     </div>
   );
 }
-

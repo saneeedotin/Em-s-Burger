@@ -1,16 +1,28 @@
+# Dependencies
 node_modules/
+
+# Production Build
 dist/
 .vite/
-.env
-.env.*
-.DS_Store
-*.mp4
-*.png
-*.jpg
-.agents/
-implementation_plan.md
-skills-lock.json
-www_cravburgers_shop.html
-cravdesign.md
 
+# Environment Variables & Secrets (Keep API keys secure)
+.env
+.env.local
+.env.*.local
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# Agent & Workspace Cache
+.agents/
+skills-lock.json
+
+# Archive & Unused Assets
+unused/
 unused_assets/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

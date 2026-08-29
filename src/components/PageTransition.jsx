@@ -2,14 +2,24 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const curtainVariants = {
-  initial: { y: '0%' },
-  animate: { y: '120%' },
+  initial: { y: '0%', display: 'flex', visibility: 'visible' },
+  animate: { 
+    y: '160%', 
+    transitionEnd: { display: 'none', visibility: 'hidden' } 
+  },
   // Only the yellow curtain will slide back up to cover the screen on exit
-  exit: { y: '120%' }, 
-  exitCover: { y: '0%' }
+  exit: { 
+    y: '160%', 
+    transitionEnd: { display: 'none', visibility: 'hidden' } 
+  }, 
+  exitCover: { 
+    y: '0%', 
+    display: 'flex', 
+    visibility: 'visible' 
+  }
 };
 
-const transitionConfig = { duration: 0.9, ease: [0.85, 0, 0.15, 1] };
+const transitionConfig = { duration: 0.85, ease: [0.85, 0, 0.15, 1] };
 
 export const PageTransition = ({ children }) => {
   return (
@@ -20,7 +30,7 @@ export const PageTransition = ({ children }) => {
       */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.4 } }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.35 } }}
         exit={{ opacity: 0, transition: { duration: 0.2 } }}
       >
         {children}
@@ -29,12 +39,12 @@ export const PageTransition = ({ children }) => {
       {/* --- CURTAINS --- */}
       {/* Red Curtain (Bottom layer of the transition) */}
       <motion.div
-        className="fixed inset-0 z-30 flex flex-col pointer-events-none bg-primary"
+        className="fixed inset-0 z-30 flex flex-col pointer-events-none bg-primary overflow-visible"
         variants={curtainVariants}
         initial="initial"
         animate="animate"
         exit="exit"
-        transition={{ ...transitionConfig, delay: 0.25 }}
+        transition={{ ...transitionConfig, delay: 0.2 }}
       >
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute top-0 left-0 w-full h-[15vh] -translate-y-[99%] text-primary fill-current">
           <path d="M 0 100 L 0 0 Q 50 100 100 0 L 100 100 Z" />
@@ -43,13 +53,13 @@ export const PageTransition = ({ children }) => {
 
       {/* Orange Curtain (Middle layer) */}
       <motion.div
-        className="fixed inset-0 z-40 flex flex-col pointer-events-none"
+        className="fixed inset-0 z-40 flex flex-col pointer-events-none overflow-visible"
         style={{ backgroundColor: '#F3732A' }}
         variants={curtainVariants}
         initial="initial"
         animate="animate"
         exit="exit"
-        transition={{ ...transitionConfig, delay: 0.15 }}
+        transition={{ ...transitionConfig, delay: 0.1 }}
       >
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute top-0 left-0 w-full h-[15vh] -translate-y-[99%] fill-current text-[#F3732A]">
           <path d="M 0 100 L 0 0 Q 50 100 100 0 L 100 100 Z" />
@@ -58,7 +68,7 @@ export const PageTransition = ({ children }) => {
 
       {/* Yellow Curtain (Top layer with text) */}
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none bg-accent"
+        className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none bg-accent overflow-visible"
         variants={curtainVariants}
         initial="initial"
         animate="animate"

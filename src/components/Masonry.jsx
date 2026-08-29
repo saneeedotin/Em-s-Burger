@@ -227,7 +227,7 @@ const Masonry = ({
         
         return (
           <div
-            key={item.id}
+            key={`${item.id}-${item.img}-${item.price}`}
             data-key={item.id}
             className="item-wrapper"
             onClick={() => {

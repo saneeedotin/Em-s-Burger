@@ -4,7 +4,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Sparkles, ArrowRight, Flame } from 'lucide-react';
-import { MENU_ITEMS } from '../data/menu';
+import { useMenu } from '../context/MenuContext';
 import { WaveDivider } from './WaveDivider';
 import FlowingMenu from './FlowingMenu';
 import { CoverflowCarousel } from './ui/coverflow-carousel';
@@ -13,6 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export function SignaturePicksStrip() {
   const sectionRef = useRef(null);
+  const { items: MENU_ITEMS } = useMenu();
 
   const signatureItems = MENU_ITEMS.filter((item) => item.isSignature).slice(0, 6);
 

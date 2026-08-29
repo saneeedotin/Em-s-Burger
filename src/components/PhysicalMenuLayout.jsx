@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MENU_ITEMS } from '../data/menu';
+import { useMenu } from '../context/MenuContext';
 
 export function PhysicalMenuLayout({ isVegOnly, onSelect }) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const { items: MENU_ITEMS } = useMenu();
 
   // Group items by category
   const getItems = (categories) => {

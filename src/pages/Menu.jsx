@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -8,13 +9,15 @@ import { MenuItemCard } from '../components/MenuItemCard';
 import { PhysicalMenuLayout } from '../components/PhysicalMenuLayout';
 import { ItemModal } from '../components/ItemModal';
 import Masonry from '../components/Masonry';
-import { Utensils, Sparkles, Filter, Search, LayoutGrid, List, BookOpen } from 'lucide-react';
+import { Utensils, Sparkles, Filter, Search, LayoutGrid, List, BookOpen, MapPin, X } from 'lucide-react';
 import { useVegMode } from '../context/VegModeContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Menu() {
   const containerRef = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
   const { isVegOnly } = useVegMode();
   const { categories: MENU_CATEGORIES, items: MENU_ITEMS } = useMenu();
   const [activeCategory, setActiveCategory] = useState('all');
@@ -23,6 +26,26 @@ export function Menu() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list' | 'physical'
   const [showFilters, setShowFilters] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [activeTable, setActiveTable] = useState(() => {
+    return localStorage.getItem('ems_table') || sessionStorage.getItem('ems_table') || null;
+  });
+
+  // Check URL table parameter on mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tableParam = params.get('table');
+    if (tableParam) {
+      localStorage.setItem('ems_table', tableParam);
+      sessionStorage.setItem('ems_table', tableParam);
+      setActiveTable(tableParam);
+    }
+  }, [location.search]);
+
+  const handleClearTable = () => {
+    localStorage.removeItem('ems_table');
+    sessionStorage.removeItem('ems_table');
+    setActiveTable(null);
+  };
 
   const filteredItems = MENU_ITEMS.filter((item) => {
     // 1. Check Global Veg Mode
@@ -54,7 +77,7 @@ export function Menu() {
       name: item.name,
       price: item.price,
       isVeg: item.isVeg,
-      height: [200, 300, 240, 280, 220, 310][index % 6], // more uneven bento heights
+      height: [200, 300, 240, 280, 220, 310][index % 6],
       onClick: () => setSelectedItem(item)
     }));
   }, [filteredItems]);
@@ -62,7 +85,6 @@ export function Menu() {
   useGSAP(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     
-    // Initial hidden state for GSAP
     gsap.set('.menu-card', { y: 40, opacity: 0 });
 
     ScrollTrigger.batch('.menu-card', {
@@ -81,7 +103,6 @@ export function Menu() {
       once: true
     });
     
-    // Refresh scroll triggers when layout changes
     ScrollTrigger.refresh();
   }, { dependencies: [filteredItems, viewMode], scope: containerRef });
 
@@ -89,6 +110,34 @@ export function Menu() {
     <div ref={containerRef} className="pt-6 pb-12 sm:py-12 bg-cream doodles-red min-h-screen text-dark relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-10">
         
+        {/* Active Table Notification Banner */}
+        {activeTable && (
+          <div className="bg-primary/10 border-2 border-primary/20 rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary text-cream flex items-center justify-center font-heading font-black text-sm">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="font-heading font-black text-sm sm:text-base text-dark">
+                  Dine-In • Table {activeTable}
+                </div>
+                <div className="text-xs text-dark/70">
+                  Your table QR is active. Add items to place your table order.
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleClearTable}
+              className="flex items-center gap-1 text-xs font-bold text-dark/50 hover:text-red-600 px-3 py-1.5 rounded-full bg-cream hover:bg-red-50 transition-colors"
+              title="Clear table session"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Clear</span>
+            </button>
+          </div>
+        )}
+
         {/* Menu Header */}
         <div className="max-w-3xl sm:mx-auto flex justify-between items-center">
           <h1 className="font-heading font-black text-3xl sm:text-5xl lg:text-6xl text-dark tracking-tight sm:text-center text-left">
@@ -223,7 +272,7 @@ export function Menu() {
 
           </div>
 
-        {/* Veg / Non-Veg Toggle Bar (Hidden in Physical View or if Global Veg Mode is on) */}
+        {/* Veg / Non-Veg Toggle Bar */}
         {!isVegOnly && viewMode !== 'physical' && (
           <div className="pt-4 border-t border-primary/10 flex flex-wrap items-center justify-between gap-4 text-xs font-bold font-heading">
             <div className="flex items-center gap-2">
@@ -306,7 +355,7 @@ export function Menu() {
             >
               <AnimatePresence>
                 {filteredItems.map((item) => (
-                  <MenuItemCard key={item.id} item={item} viewMode={viewMode} onSelect={setSelectedItem} />
+                  <MenuItemCard key={`${item.id}-${item.image}-${item.price}`} item={item} viewMode={viewMode} onSelect={setSelectedItem} />
                 ))}
               </AnimatePresence>
             </motion.div>

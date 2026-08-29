@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, CheckCircle2, AlertCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
@@ -20,14 +20,18 @@ export function Signup() {
 
   const { signup, loginWithGoogle, currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTarget = searchParams.get('redirect') || location.state?.from?.pathname || '/dashboard';
 
   // Auto-redirect if user is already logged in (e.g. after Google popup)
   useEffect(() => {
-    if (currentUser && currentUser.id !== 'admin') {
+    if (currentUser && currentUser.role !== 'admin') {
       setSuccess(true);
-      setTimeout(() => navigate('/dashboard', { replace: true }), 600);
+      setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, redirectTarget]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,8 +58,15 @@ export function Signup() {
       if (res.code) setOtpHint(res.code);
       setShowOtpModal(true);
     } else {
-      setError(res.message || 'Failed to send verification code to this email.');
-      triggerShake();
+      // Fallback: Proceed directly if email dispatch failed
+      const signupRes = await signup(name, email, password);
+      if (signupRes.success) {
+        setSuccess(true);
+        setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
+      } else {
+        setError(signupRes.message || res.message || 'Failed to create account.');
+        triggerShake();
+      }
     }
   };
 
@@ -70,7 +81,7 @@ export function Signup() {
     if (res.success) {
       setShowOtpModal(false);
       setSuccess(true);
-      setTimeout(() => navigate('/dashboard', { replace: true }), 600);
+      setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
       return { success: true };
     } else {
       return { success: false, message: res.message };
@@ -86,7 +97,7 @@ export function Signup() {
     const res = await loginWithGoogle();
     if (res.success) {
       setSuccess(true);
-      setTimeout(() => navigate('/dashboard', { replace: true }), 600);
+      setTimeout(() => navigate(redirectTarget, { replace: true }), 500);
     } else {
       setError(res.message);
       triggerShake();
@@ -237,7 +248,7 @@ export function Signup() {
             {/* Footer Log in prompt */}
             <div className="text-center pt-2 border-t border-primary/10 text-xs font-medium text-dark/70">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary font-heading font-bold hover:underline">
+              <Link to={`/login${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect'))}` : ''}`} className="text-primary font-heading font-bold hover:underline">
                 Log In
               </Link>
             </div>

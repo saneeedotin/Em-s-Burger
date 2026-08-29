@@ -1,18 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db } from '../config/firebase';
+import { auth, db, isFirebaseConfigured } from '../config/firebase';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signInWithPopup, 
-  signInWithRedirect, 
   getRedirectResult, 
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged,
-  sendPasswordResetEmail,
-  signInAnonymously
+  sendPasswordResetEmail
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, runTransaction } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, runTransaction, collection, getDocs } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -25,122 +23,249 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Guaranteed 100% Unique Sequential EMCODE Generator
   const generateNextUserId = async () => {
-    let numericId = 1000;
+    let numericId = 1001;
     try {
-      await runTransaction(db, async (transaction) => {
-        const counterRef = doc(db, 'metadata', 'user_counter');
-        const counterDoc = await transaction.get(counterRef);
-        if (!counterDoc.exists()) {
-          numericId = 1001;
-          transaction.set(counterRef, { count: 1001 });
-        } else {
-          numericId = counterDoc.data().count + 1;
-          transaction.update(counterRef, { count: numericId });
-        }
-      });
+      if (isFirebaseConfigured) {
+        // 1. Query all existing profiles to find the current maximum numeric_id
+        const profilesSnap = await getDocs(collection(db, 'profiles'));
+        const existingIds = profilesSnap.docs
+          .map(d => Number(d.data()?.numeric_id) || 0)
+          .filter(id => id >= 1000);
+        
+        let localIds = [];
+        try {
+          const localProfiles = JSON.parse(localStorage.getItem('ems_user_profiles') || '[]');
+          localIds = localProfiles.map(p => Number(p.numeric_id) || 0).filter(id => id >= 1000);
+        } catch (e) {}
+
+        const maxExisting = Math.max(1000, ...existingIds, ...localIds);
+
+        // 2. Perform atomic transaction on user_counter
+        await runTransaction(db, async (transaction) => {
+          const counterRef = doc(db, 'metadata', 'user_counter');
+          const counterDoc = await transaction.get(counterRef);
+          const currentCounterVal = counterDoc.exists() ? (counterDoc.data().count || 1000) : 1000;
+          
+          numericId = Math.max(currentCounterVal, maxExisting) + 1;
+          transaction.set(counterRef, { count: numericId }, { merge: true });
+        });
+        return numericId;
+      }
     } catch (e) {
-      console.error('Failed to generate numeric ID:', e);
-      numericId = Math.floor(1000 + Math.random() * 9000); // 4-digit fallback
+      console.warn('Sequential unique numeric ID generation warning:', e);
+    }
+
+    try {
+      const localProfiles = JSON.parse(localStorage.getItem('ems_user_profiles') || '[]');
+      const localIds = localProfiles.map(p => Number(p.numeric_id) || 0).filter(id => id >= 1000);
+      numericId = Math.max(1000, ...localIds) + 1;
+    } catch (e) {
+      numericId = Math.floor(1000 + Math.random() * 9000);
     }
     return numericId;
   };
 
+  // Auto-deduplicate any existing duplicate EMCODEs on initial load
   useEffect(() => {
-    // Handle redirect result from Google sign-in (if popup was blocked)
+    if (!isFirebaseConfigured) return;
+
+    const deduplicateExistingProfiles = async () => {
+      try {
+        const snap = await getDocs(collection(db, 'profiles'));
+        const seenIds = new Set();
+        const duplicates = [];
+
+        snap.docs.forEach(docSnap => {
+          const numId = Number(docSnap.data()?.numeric_id);
+          if (numId) {
+            if (seenIds.has(numId)) {
+              duplicates.push({ docId: docSnap.id, data: docSnap.data() });
+            } else {
+              seenIds.add(numId);
+            }
+          }
+        });
+
+        if (duplicates.length > 0) {
+          let highest = Math.max(1000, ...Array.from(seenIds));
+          for (const dup of duplicates) {
+            highest += 1;
+            await updateDoc(doc(db, 'profiles', dup.docId), { numeric_id: highest });
+            seenIds.add(highest);
+          }
+          await setDoc(doc(db, 'metadata', 'user_counter'), { count: highest }, { merge: true });
+        }
+      } catch (err) {
+        console.warn('Deduplication check warning:', err);
+      }
+    };
+
+    deduplicateExistingProfiles();
+  }, []);
+
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
+    // Handle redirect result from Google sign-in
     getRedirectResult(auth).catch(console.error);
 
-    // Listen for auth changes
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let profileUnsubscribe = () => {};
+
+    // Listen for Firebase Auth state changes
+    const authUnsubscribe = onAuthStateChanged(auth, async (user) => {
+      profileUnsubscribe(); // clean up previous listener
+
       if (user) {
-        await fetchProfile(user.uid, user.email, user.displayName);
+        // Subscribe to real-time profile updates in Firestore
+        const userDocRef = doc(db, 'profiles', user.uid);
+        
+        try {
+          const initialSnap = await getDoc(userDocRef);
+          
+          if (!initialSnap.exists()) {
+            const numericId = await generateNextUserId();
+            const isAdminEmail = user.email?.toLowerCase() === ADMIN_CREDENTIALS.email || user.email?.toLowerCase() === 'admin@emsburger.com';
+
+            const newProfile = {
+              email: user.email?.toLowerCase(),
+              name: user.displayName || user.email?.split('@')[0] || 'Customer',
+              numeric_id: numericId,
+              role: isAdminEmail ? 'admin' : 'user',
+              stamps: 1,
+              beverageStamps: 0,
+              favourites: [],
+              created_at: new Date().toISOString()
+            };
+            await setDoc(userDocRef, newProfile);
+            setCurrentUser({ id: user.uid, ...newProfile });
+
+            // Sync to local cache
+            try {
+              const localProfiles = JSON.parse(localStorage.getItem('ems_user_profiles') || '[]');
+              const merged = [{ id: user.uid, ...newProfile }, ...localProfiles.filter(p => p.id !== user.uid)];
+              localStorage.setItem('ems_user_profiles', JSON.stringify(merged));
+              window.dispatchEvent(new Event('ems_users_updated'));
+            } catch (e) {}
+          } else {
+            const data = initialSnap.data();
+            if (!data.numeric_id) {
+              const numericId = await generateNextUserId();
+              await setDoc(userDocRef, { numeric_id: numericId }, { merge: true });
+              data.numeric_id = numericId;
+            }
+            setCurrentUser({ id: user.uid, ...data });
+
+            // Sync to local cache
+            try {
+              const localProfiles = JSON.parse(localStorage.getItem('ems_user_profiles') || '[]');
+              const merged = [{ id: user.uid, ...data }, ...localProfiles.filter(p => p.id !== user.uid)];
+              localStorage.setItem('ems_user_profiles', JSON.stringify(merged));
+              window.dispatchEvent(new Event('ems_users_updated'));
+            } catch (e) {}
+          }
+
+          // Real-time listener for profile changes (stamps, bans, favorites)
+          profileUnsubscribe = onSnapshot(userDocRef, async (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              if (data.isBanned) {
+                await signOut(auth);
+                setCurrentUser(null);
+                alert('Your account has been suspended.');
+                return;
+              }
+              setCurrentUser({ id: user.uid, ...data });
+
+              try {
+                const localProfiles = JSON.parse(localStorage.getItem('ems_user_profiles') || '[]');
+                const merged = [{ id: user.uid, ...data }, ...localProfiles.filter(p => p.id !== user.uid)];
+                localStorage.setItem('ems_user_profiles', JSON.stringify(merged));
+                window.dispatchEvent(new Event('ems_users_updated'));
+              } catch (e) {}
+            }
+          });
+
+        } catch (err) {
+          console.warn('Profile initialization error:', err);
+          setCurrentUser({
+            id: user.uid,
+            email: user.email,
+            name: user.displayName || user.email?.split('@')[0] || 'Customer',
+            numeric_id: 1001,
+            role: 'user',
+            stamps: 1,
+            favourites: []
+          });
+        } finally {
+          setLoading(false);
+        }
       } else {
-        setCurrentUser(null);
+        // If logged in via master admin credentials without Firebase Auth UID
+        if (currentUser?.id !== 'admin_master') {
+          setCurrentUser(null);
+        }
         setLoading(false);
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      authUnsubscribe();
+      profileUnsubscribe();
+    };
   }, []);
-
-  const fetchProfile = async (userId, email, displayName) => {
-    try {
-      const userDocRef = doc(db, 'profiles', userId);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        if (data.isBanned) {
-          await signOut(auth);
-          setCurrentUser(null);
-          throw new Error('BANNED_USER');
-        }
-        
-        if (!data.numeric_id && !data.hash_id) {
-          // Retroactively generate an ID for older test accounts
-          const numericId = await generateNextUserId();
-          await setDoc(userDocRef, { numeric_id: numericId }, { merge: true });
-          data.numeric_id = numericId;
-        }
-        setCurrentUser({ id: userId, ...data });
-      } else {
-        // Fallback: If profile doesn't exist (e.g. they just signed in with Google), create it
-        const numericId = await generateNextUserId();
-
-        const newProfile = {
-          email: email,
-          name: displayName || email.split('@')[0],
-          numeric_id: numericId,
-          role: 'user',
-          stamps: 1, // Start with 1 welcome stamp!
-          favourites: [],
-          created_at: new Date().toISOString()
-        };
-        await setDoc(userDocRef, newProfile);
-        setCurrentUser({ id: userId, ...newProfile });
-      }
-    } catch (error) {
-      console.error('Error fetching/creating profile:', error);
-      // Even if Firestore fails, set user so they aren't completely blocked
-      setCurrentUser({ id: userId, email, role: 'user', name: displayName || email.split('@')[0] });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const login = async (email, password) => {
     try {
-      // Hardcoded admin check
-      if ((email.toLowerCase() === ADMIN_CREDENTIALS.email || email.toLowerCase() === 'admin@emsburger.com') && password === ADMIN_CREDENTIALS.password) {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // Check admin credentials
+      if ((normalizedEmail === ADMIN_CREDENTIALS.email || normalizedEmail === 'admin@emsburger.com') && password === ADMIN_CREDENTIALS.password) {
         try {
-          if (!auth.currentUser) await signInAnonymously(auth);
+          if (isFirebaseConfigured) {
+            await signInWithEmailAndPassword(auth, normalizedEmail, password);
+          }
         } catch (e) {}
-        setCurrentUser({ id: 'admin', email: ADMIN_CREDENTIALS.email, role: 'admin', name: 'Admin' });
+
+        setCurrentUser({ 
+          id: 'admin_master', 
+          email: ADMIN_CREDENTIALS.email, 
+          role: 'admin', 
+          name: 'Master Admin',
+          numeric_id: 9999,
+          stamps: 9 
+        });
         return { success: true, isAdmin: true };
       }
 
-      // Hardcoded demo user check
-      if (email.toLowerCase() === 'demo@emsburgers.com') {
-        try {
-          if (!auth.currentUser) await signInAnonymously(auth);
-        } catch (e) {}
-        setCurrentUser({ id: 'demo-user', email: 'demo@emsburgers.com', role: 'user', name: 'Demo User', stamps: 5 });
-        return { success: true, isAdmin: false };
+      if (!isFirebaseConfigured) {
+        return { 
+          success: false, 
+          message: 'Firebase is not configured. Please add your VITE_FIREBASE_* keys to .env.' 
+        };
       }
 
-      await signInWithEmailAndPassword(auth, email, password);
-      // fetchProfile is triggered by onAuthStateChanged, but let's check it explicitly here to catch the throw
-      const user = auth.currentUser;
-      if (user) {
-        await fetchProfile(user.uid, user.email, user.displayName);
-      }
+      const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       return { success: true, isAdmin: false };
     } catch (error) {
+      console.error('Login error:', error);
       let message = error.message;
-      if (error.message === 'BANNED_USER') {
-        message = 'Your account has been permanently suspended.';
-      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (
+        error.code === 'auth/invalid-credential' || 
+        error.code === 'auth/user-not-found' || 
+        error.code === 'auth/wrong-password'
+      ) {
         message = 'Invalid email or password.';
+      } else if (error.code === 'auth/api-key-not-valid') {
+        message = 'Firebase API Key is invalid. Please check your .env configuration.';
+      } else if (error.code === 'auth/unauthorized-domain') {
+        message = 'Domain unauthorized. Add this host/IP to Firebase Console -> Authentication -> Settings -> Authorized Domains.';
+      } else if (error.code === 'auth/network-request-failed') {
+        message = 'Network error. Please check your internet connection.';
       }
       return { success: false, message };
     }
@@ -148,23 +273,30 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     try {
+      if (!isFirebaseConfigured) {
+        return { 
+          success: false, 
+          message: 'Firebase is not configured. Please set your VITE_FIREBASE_* keys in .env.' 
+        };
+      }
+
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
-      if (result.user) {
-        await fetchProfile(result.user.uid, result.user.email, result.user.displayName);
-      }
       return { success: true };
     } catch (error) {
       console.error('Google sign-in error:', error);
-      if (error.message === 'BANNED_USER') {
-        return { success: false, message: 'Your account has been permanently suspended.' };
-      }
       if (error.code === 'auth/popup-closed-by-user') {
         return { success: false, message: 'Google sign-in was closed before completing.' };
       }
       if (error.code === 'auth/popup-blocked') {
         return { success: false, message: 'Popup blocked by browser. Please allow popups for this site.' };
+      }
+      if (error.code === 'auth/unauthorized-domain') {
+        return { 
+          success: false, 
+          message: 'Domain unauthorized. Please add this host/IP to Firebase Console Authorized Domains.' 
+        };
       }
       return { success: false, message: error.message || 'Google sign-in failed.' };
     }
@@ -172,46 +304,65 @@ export function AuthProvider({ children }) {
 
   const signup = async (name, email, password) => {
     try {
-      // 1. Sign up user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (!isFirebaseConfigured) {
+        return { 
+          success: false, 
+          message: 'Firebase is not configured. Please set your VITE_FIREBASE_* keys in .env.' 
+        };
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // 1. Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
       const user = userCredential.user;
 
       // 2. Generate sequential Numeric ID
       const numericId = await generateNextUserId();
 
-      // 3. Create profile in Firestore
-      await setDoc(doc(db, 'profiles', user.uid), {
-        email: email,
-        name: name,
+      // 3. Create profile document in Firestore
+      const newProfile = {
+        email: normalizedEmail,
+        name: name.trim(),
         numeric_id: numericId,
         role: 'user',
-        stamps: 1, // Start with 1 welcome stamp!
+        stamps: 1, // 1 welcome stamp
+        beverageStamps: 0,
         favourites: [],
         created_at: new Date().toISOString()
-      });
+      };
+
+      await setDoc(doc(db, 'profiles', user.uid), newProfile);
+      setCurrentUser({ id: user.uid, ...newProfile });
       
       return { success: true };
     } catch (error) {
+      console.error('Signup error:', error);
       let message = error.message;
       if (error.code === 'auth/email-already-in-use') {
         message = 'This email is already in use. Please log in.';
       } else if (error.code === 'auth/weak-password') {
         message = 'Password must be at least 6 characters.';
+      } else if (error.code === 'auth/api-key-not-valid') {
+        message = 'Firebase API Key is invalid. Please check your .env configuration.';
+      } else if (error.code === 'auth/unauthorized-domain') {
+        message = 'Domain unauthorized. Please add this host to Firebase Console Authorized Domains.';
       }
       return { success: false, message };
     }
   };
 
   const logout = async () => {
-    if (currentUser?.role === 'admin' || currentUser?.id === 'demo-user') {
-      setCurrentUser(null);
-    } else {
+    try {
       await signOut(auth);
+    } catch (e) {
+      console.warn('Sign out error:', e);
     }
+    setCurrentUser(null);
   };
 
   const toggleFavourite = async (itemId) => {
-    if (!currentUser || currentUser.id === 'admin' || currentUser.id === 'demo-user') return;
+    if (!currentUser) return;
     
     try {
       const currentFavs = currentUser.favourites || [];
@@ -219,18 +370,25 @@ export function AuthProvider({ children }) {
         ? currentFavs.filter(id => id !== itemId)
         : [...currentFavs, itemId];
 
-      // Optimistic update
       setCurrentUser({ ...currentUser, favourites: newFavs });
 
-      // Update in Firestore
-      await setDoc(doc(db, 'profiles', currentUser.id), { favourites: newFavs }, { merge: true });
+      if (isFirebaseConfigured && currentUser.id !== 'admin_master') {
+        await setDoc(doc(db, 'profiles', currentUser.id), { favourites: newFavs }, { merge: true });
+      }
     } catch (error) {
-      console.error("Error toggling favourite:", error);
+      console.error("Error toggling favourite in Firestore:", error);
     }
   };
 
   const resetPassword = async (emailToReset) => {
     try {
+      if (!isFirebaseConfigured) {
+        return { 
+          success: false, 
+          message: 'Firebase is not configured. Please set your VITE_FIREBASE_* keys in .env.' 
+        };
+      }
+
       const normalizedEmail = emailToReset.trim().toLowerCase();
       await sendPasswordResetEmail(auth, normalizedEmail);
       return { success: true };
@@ -248,8 +406,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const isDemoAccount = currentUser?.email === 'demo@emsburgers.com';
-
   return (
     <AuthContext.Provider
       value={{
@@ -261,7 +417,7 @@ export function AuthProvider({ children }) {
         logout,
         resetPassword,
         toggleFavourite,
-        isDemoAccount,
+        isFirebaseConfigured
       }}
     >
       {!loading && children}
