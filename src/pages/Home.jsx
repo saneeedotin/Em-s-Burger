@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -42,10 +42,12 @@ const DEFAULT_REVIEWS = [
 export function Home() {
   const { currentUser } = useAuth();
   const { isVegOnly } = useVegMode();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [selectedReview, setSelectedReview] = useState(null);
   const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewName, setReviewName] = useState('');
   const [reviewText, setReviewText] = useState('');
   const [reviewStars, setReviewStars] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,11 +61,13 @@ export function Home() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  useEffect(() => {
-    if (currentUser?.name) {
-      setReviewName(currentUser.name);
+  const handleOpenReviewModal = () => {
+    if (currentUser) {
+      setShowReviewModal(true);
+    } else {
+      navigate('/login', { state: { from: location } });
     }
-  }, [currentUser]);
+  };
 
   useEffect(() => {
     if (!isFirebaseConfigured) return;
@@ -83,13 +87,12 @@ export function Home() {
 
   const handlePostReview = async (e) => {
     e?.preventDefault();
-    if (!reviewText.trim()) return;
-    const author = reviewName.trim() || currentUser?.name || 'Happy Customer';
+    if (!reviewText.trim() || !currentUser) return;
     setIsSubmitting(true);
 
     const newRev = {
-      author_name: author,
-      user_id: currentUser?.id || 'guest',
+      author_name: currentUser.name || "Customer",
+      user_id: currentUser.id,
       stars: Number(reviewStars) || 5,
       text: reviewText.trim()
     };
@@ -293,7 +296,7 @@ export function Home() {
               {/* Pin Your Review CTA Button */}
               <div className="pt-2 flex justify-center">
                 <button
-                  onClick={() => setShowReviewModal(true)}
+                  onClick={handleOpenReviewModal}
                   className="inline-flex items-center gap-2.5 bg-accent hover:bg-accent-hover text-dark font-heading font-black text-xs sm:text-sm uppercase tracking-wider px-7 py-3.5 rounded-full shadow-[0_8px_25px_rgba(242,183,5,0.35)] transition-all hover:scale-105 active:scale-95"
                 >
                   <PenLine className="w-4 h-4 text-dark" />
@@ -425,19 +428,18 @@ export function Home() {
                 </div>
               </div>
 
-              {/* Author Name Input */}
-              <div className="space-y-1">
-                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-dark/60">
-                  Your Name / Nickname:
-                </label>
-                <input
-                  type="text"
-                  value={reviewName}
-                  onChange={(e) => setReviewName(e.target.value)}
-                  placeholder="e.g. Rahul Sharma"
-                  className="w-full px-4 py-3 bg-white border border-dark/15 rounded-2xl font-heading font-bold text-sm text-dark focus:outline-none focus:border-primary"
-                />
-              </div>
+              {/* Authenticated Member Info */}
+              {currentUser && (
+                <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-dark/10 shadow-sm">
+                  <div className="w-9 h-9 rounded-full bg-primary text-cream flex items-center justify-center font-heading font-black text-xs">
+                    {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div>
+                    <div className="font-heading font-bold text-sm text-dark">{currentUser.name}</div>
+                    <div className="text-[11px] text-dark/60">{currentUser.email} • Verified Customer</div>
+                  </div>
+                </div>
+              )}
 
               {/* Review Text Area */}
               <div className="space-y-1">
