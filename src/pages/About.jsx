@@ -1,60 +1,74 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight, Quote, Instagram } from 'lucide-react';
+import { Heart, Sparkles, ChefHat, Flame, History, X, Info, Pin, ArrowRight, Quote, Instagram, Star, ExternalLink } from 'lucide-react';
 import { CoverflowCarousel } from '../components/ui/coverflow-carousel';
 import BounceCards from '../components/BounceCards';
 import LogoLoop from '../components/LogoLoop';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../config/firebase';
-import { collection, getDocs, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+
+const GoogleGIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+  </svg>
+);
+
+const GOOGLE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Em%E2%80%99s+Burger+-+Burgers+built+to+hit,+Shop+no,+20+road,+Wadavli,+Borla,+koliwada,+Chembur,+Mumbai,+Maharashtra+400074";
+
+const GOOGLE_REVIEWS = [
+  {
+    id: 'g-1',
+    author_name: "Pradeep Khandelwal",
+    stars: 5,
+    time: "2 weeks ago",
+    text: "Nice juicy burgers. Chicken BBQ slider and Mushroom Truffle Burgers were especially nice. Sweet potato fries were also good, very nice packaging and cute branding.",
+    colorClass: 'bg-cream-light',
+    textClass: 'text-dark',
+    pinClass: 'bg-primary',
+    rotateClass: '-rotate-2'
+  },
+  {
+    id: 'g-2',
+    author_name: "Tanmay Sharma",
+    stars: 5,
+    time: "a month ago",
+    text: "Great place, great aesthetic and even great burgers. If you want a quick burger bite for less money, defo order the sliders.",
+    colorClass: 'bg-accent',
+    textClass: 'text-dark',
+    pinClass: 'bg-primary-dark',
+    rotateClass: 'rotate-2'
+  },
+  {
+    id: 'g-3',
+    author_name: "Sneha Ramakrishnan",
+    stars: 5,
+    time: "3 weeks ago",
+    text: "Tried the truffle mushroom burger, cheese fondue fries, jalapeño cheese poppers here and it exceeded my expectations. So fresh and tasty! My friends also tried chicken burgers, which they really liked. Also great music and vibe in the cafe 😊",
+    colorClass: 'bg-primary',
+    textClass: 'text-cream',
+    pinClass: 'bg-accent',
+    rotateClass: '-rotate-1'
+  },
+  {
+    id: 'g-4',
+    author_name: "Aarav Mehta",
+    stars: 5,
+    time: "1 month ago",
+    text: "The pull-me-up cheese burger is a showstopper. Fresh house buns, crispy battered fries, and top-tier smash patties right in Chembur Camp. 10/10 recommended!",
+    colorClass: 'bg-cream',
+    textClass: 'text-dark',
+    pinClass: 'bg-primary',
+    rotateClass: 'rotate-3'
+  }
+];
 
 export function About() {
   const storyContainerRef = useRef(null);
   const [selectedDish, setSelectedDish] = useState(null);
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
-
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [newReviewText, setNewReviewText] = useState('');
-  
-  const [reviews, setReviews] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const applyRandomStyle = (reviewData) => {
-    const styles = [
-      { colorClass: 'bg-cream-light', textClass: 'text-dark', pinClass: 'bg-primary' },
-      { colorClass: 'bg-accent', textClass: 'text-dark', pinClass: 'bg-primary-dark' },
-      { colorClass: 'bg-primary', textClass: 'text-cream', pinClass: 'bg-accent' },
-      { colorClass: 'bg-cream', textClass: 'text-dark', pinClass: 'bg-primary' }
-    ];
-    const rotations = ['-rotate-1', '-rotate-2', '-rotate-3', 'rotate-1', 'rotate-2', 'rotate-3'];
-    const style = styles[Math.floor(Math.random() * styles.length)];
-    
-    return {
-      ...reviewData,
-      colorClass: style.colorClass,
-      textClass: style.textClass,
-      pinClass: style.pinClass,
-      rotateClass: rotations[Math.floor(Math.random() * rotations.length)]
-    };
-  };
-
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const q = query(collection(db, 'reviews'), orderBy('created_at', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setReviews(data.map(applyRandomStyle));
-      } catch (error) {
-        console.error('Error fetching reviews:', error);
-      }
-    };
-    fetchReviews();
-  }, []);
 
   const favoritePicks = [
     {
@@ -423,48 +437,73 @@ export function About() {
         </div>
       </section>
 
-      {/* SECTION 4: Corkboard Reviews */}
+      {/* SECTION 4: Corkboard Google Reviews */}
       <section className="anim-card-4 relative bg-dark text-cream pt-28 pb-36 px-4 sm:px-6 lg:px-8 -mt-12 rounded-t-[60px] md:rounded-t-[100px] z-40 shadow-2xl overflow-hidden border-t-8 border-cream/5">
         {/* Corkboard texture pattern (simple CSS repeating linear gradient) */}
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.3) 2px, transparent 2px)', backgroundSize: '16px 16px' }} />
         
         <div className="relative max-w-7xl mx-auto space-y-16 z-10">
           <div className="text-center space-y-3">
-            <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-cream font-heading font-extrabold text-xs uppercase tracking-wider">
-              <History className="w-3.5 h-3.5 inline mr-1" /> Community
-            </span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-cream font-heading font-extrabold text-xs uppercase tracking-wider">
+              <GoogleGIcon className="w-4 h-4" />
+              <span>Verified Google Reviews • ⭐ 4.9 Rating</span>
+            </div>
+
             <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight text-primary drop-shadow-md">
-              What Chembur Says
+              What Chembur Says On Google
             </h2>
+
             <p className="text-cream/80 max-w-xl mx-auto font-medium text-sm sm:text-base">
-              Real reviews from real people who love their burgers messy and delicious.
+              Real reviews from real foodies who visited our Chembur outlet.
             </p>
-            <div className="pt-4">
-              <button
-                onClick={handlePinReviewClick}
-                className="inline-flex items-center justify-center gap-2 bg-cream text-dark hover:bg-cream-light font-heading font-black text-sm uppercase tracking-wide px-6 py-3 rounded-full shadow-md transition-all hover:-translate-y-1"
+
+            <div className="pt-4 flex justify-center gap-4">
+              <a
+                href={GOOGLE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2.5 bg-cream text-dark hover:bg-cream-light font-heading font-black text-xs sm:text-sm uppercase tracking-wide px-7 py-3.5 rounded-full shadow-lg transition-all hover:-translate-y-1 active:scale-95"
               >
-                <Pin className="w-4 h-4" />
-                Pin Your Review
-              </button>
+                <GoogleGIcon className="w-4 h-4" />
+                <span>View All On Google Maps</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
           </div>
 
           {/* Sticky Notes Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 pb-12 px-2 md:px-0">
-            {reviews.map((review) => (
+            {GOOGLE_REVIEWS.map((review) => (
               <div 
                 key={review.id}
-                className={`anim-sticky-note relative ${review.colorClass} p-6 pb-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform ${review.rotateClass} hover:rotate-0 hover:-translate-y-2 group cursor-crosshair`}
+                className={`anim-sticky-note relative ${review.colorClass} p-6 pb-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform ${review.rotateClass} hover:rotate-0 hover:-translate-y-2 group cursor-default`}
               >
                 {/* Pushpin */}
                 <div className={`absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 ${review.pinClass} rounded-full shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.3),_2px_4px_6px_rgba(0,0,0,0.4)] z-10`} />
                 <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-3 ${review.pinClass}/50 -z-10 blur-sm`} />
                 
-                <div className={`font-serif text-lg leading-relaxed ${review.textClass} mb-6 italic opacity-90 group-hover:opacity-100 transition-opacity`}>
+                {/* Top Google Badge & Stars */}
+                <div className="flex items-center justify-between mb-4 border-b border-dark/10 pb-2">
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: review.stars }).map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] font-heading font-bold opacity-70">
+                    <GoogleGIcon className="w-3 h-3" />
+                    <span>Google Review</span>
+                  </div>
+                </div>
+
+                <div className={`font-serif text-base sm:text-lg leading-relaxed ${review.textClass} mb-6 italic opacity-90 group-hover:opacity-100 transition-opacity`}>
                   "{review.text}"
                 </div>
-                <div className={`font-heading font-bold text-sm ${review.textClass}/80 text-right`}>- {review.author_name}</div>
+
+                <div className={`font-heading font-bold text-sm ${review.textClass}/90 text-right border-t border-dark/10 pt-3`}>
+                  — {review.author_name}
+                  <span className="block text-[10px] font-normal opacity-60 font-sans">{review.time}</span>
+                </div>
+
                 {/* Tape corner effect */}
                 <div className="absolute bottom-0 right-0 w-8 h-8 bg-black/5" style={{ clipPath: 'polygon(100% 0, 0% 100%, 100% 100%)' }}></div>
               </div>
@@ -523,42 +562,6 @@ export function About() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 5. Review Submission Modal */}
-      {showReviewModal && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/80 backdrop-blur-sm animate-fadeIn"
-          onClick={() => setShowReviewModal(false)}
-        >
-          <div 
-            className="bg-cream-light border-4 border-dark rounded-3xl max-w-lg w-full p-8 shadow-[12px_12px_0px_rgba(43,24,16,1)] relative animate-scaleUp text-dark"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowReviewModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-dark/10 text-dark transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="font-heading font-black text-2xl text-dark mb-4 flex items-center gap-2">
-              <Pin className="text-primary w-6 h-6" /> Pin Your Review
-            </h3>
-            <textarea
-              value={newReviewText}
-              onChange={(e) => setNewReviewText(e.target.value)}
-              placeholder="What did you think of the food? (Keep it messy!)"
-              className="w-full bg-white/50 border-2 border-dark/20 rounded-xl p-4 min-h-[120px] font-serif resize-none focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all"
-            />
-            <button
-              onClick={submitReview}
-              disabled={!newReviewText.trim() || isSubmitting}
-              className="mt-6 w-full bg-primary hover:bg-primary-dark text-cream font-heading font-bold uppercase tracking-wider py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-            >
-              {isSubmitting ? 'Posting...' : 'Post Review'}
-            </button>
           </div>
         </div>
       )}
