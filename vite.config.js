@@ -8,9 +8,6 @@ export default defineConfig({
     port: 3001,
     open: false,
     strictPort: false,
-    allowedHosts: [
-      'wallace-fill-mph-viewers.trycloudflare.com',
-      'walked-moisture-align-whose.trycloudflare.com'
-    ]
+    allowedHosts: true
   }
 });

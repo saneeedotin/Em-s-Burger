@@ -62,12 +62,6 @@ export function Home() {
         scrollTrigger: { trigger: storyRef.current, start: 'top bottom', end: 'bottom top', scrub: 1 }
       });
       
-      // Floating badges parallax
-      gsap.to('.editorial-badge', {
-        y: -60,
-        ease: 'none',
-        scrollTrigger: { trigger: storyRef.current, start: 'top bottom', end: 'bottom top', scrub: 1.5 }
-      });
 
       // Fade up text and CTA
       gsap.from('.editorial-text, .editorial-btn', {
