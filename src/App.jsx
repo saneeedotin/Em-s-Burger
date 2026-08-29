@@ -112,6 +112,8 @@ export function App() {
                             <Route path="/checkout" element={<Checkout />} />
                             <Route path="/while-you-wait" element={<WhileYouWait />} />
                             <Route path="/privacy" element={<PrivacyPolicy />} />
+                            <Route path="/locations" element={<Navigate to="/contact" replace />} />
+                            <Route path="/location" element={<Navigate to="/contact" replace />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </PageTransition>
