@@ -3,7 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { MapEmbed } from '../components/MapEmbed';
-import { MapPin, Phone, Instagram, ExternalLink, MessageCircle, Sparkles, Clock } from 'lucide-react';
+import { SlideToCall } from '../components/SlideToCall';
+import { MapPin, Phone, Instagram, ExternalLink, Sparkles, Clock } from 'lucide-react';
 
 export function Contact() {
   const contactContainerRef = useRef(null);
@@ -183,13 +184,13 @@ export function Contact() {
               </a>
             </div>
 
-            {/* Card 2: Call & WhatsApp */}
+            {/* Card 2: Call EM'S & Slide to Call */}
             <div className="anim-contact-card bg-cream-light p-8 rounded-4xl border-4 border-primary text-dark shadow-xl flex flex-col justify-between hover:scale-102 hover:rotate-1 transition-all duration-300">
               <div className="space-y-4">
                 <div className="w-14 h-14 rounded-2xl bg-primary text-cream flex items-center justify-center shadow-lg">
                   <Phone className="w-7 h-7 text-accent" />
                 </div>
-                <h3 className="font-heading font-black text-2xl">Call & WhatsApp</h3>
+                <h3 className="font-heading font-black text-2xl">Call & Direct Orders</h3>
                 <p className="text-dark/80 text-sm sm:text-base leading-relaxed font-medium">
                   For table reservations, party orders, or delivery queries:
                 </p>
@@ -197,22 +198,8 @@ export function Contact() {
                   +91 98200 98200
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 mt-6">
-                <a
-                  href="tel:+919820098200"
-                  className="flex-1 text-center py-3 px-4 rounded-full bg-primary hover:bg-primary-hover text-cream font-heading font-extrabold text-xs uppercase tracking-wider shadow-md transition-colors"
-                >
-                  Click to Call
-                </a>
-                <a
-                  href="https://wa.me/919820098200"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 text-center py-3 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-extrabold text-xs uppercase tracking-wider shadow-md transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>WhatsApp</span>
-                </a>
+              <div className="mt-6">
+                <SlideToCall phoneNumber="+919820098200" displayPhone="+91 98200 98200" label="Slide to Call EM'S" />
               </div>
             </div>
 
